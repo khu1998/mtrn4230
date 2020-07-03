@@ -8,9 +8,10 @@ Repository to store source code for Group 13 MTRN4230
 (this is currently only launch file but will create more as we get further and have more working parts) 
 
 # Folder structure
-mtrn4230
-| config
-| launch
-| src
-| urdf
-| world
+/urdf   <-- put all urdf files here
+
+/src    <-- put all python files here
+
+/config <-- put all yaml or config files here
+
+/launch <-- put all launch files
