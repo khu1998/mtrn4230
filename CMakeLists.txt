@@ -64,10 +64,16 @@ find_package(catkin REQUIRED COMPONENTS gazebo_msgs roscpp geometry_msgs std_srv
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs  # Or other packages containing msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+# )
+add_message_files(FILES blocks_poses.msg)
+add_message_files(FILES Tracker.msg)
+
+generate_messages(DEPENDENCIES std_msgs)
+
+catkin_package(CATKIN_DEPENDS message_runtime)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -115,6 +121,14 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+# Declare the executable, along with its source files.
+add_executable(blocks_spawner src/blocks_spawner.cpp)
+add_executable(blocks_poses_publisher src/blocks_poses_publisher.cpp)
+
+# Specify libraries against which to link.
+target_link_libraries(blocks_spawner ${catkin_LIBRARIES})
+target_link_libraries(blocks_poses_publisher ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
