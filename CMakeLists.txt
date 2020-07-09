@@ -123,12 +123,12 @@ include_directories(
 )
 
 # Declare the executable, along with its source files.
-add_executable(blocks_spawner src/blocks_spawner.cpp)
-add_executable(blocks_poses_publisher src/blocks_poses_publisher.cpp)
+add_executable(spawner src/blocks_spawner.cpp)
+add_executable(poses_publisher src/blocks_poses_publisher.cpp)
 
 # Specify libraries against which to link.
-target_link_libraries(blocks_spawner ${catkin_LIBRARIES})
-target_link_libraries(blocks_poses_publisher ${catkin_LIBRARIES})
+target_link_libraries(spawner ${catkin_LIBRARIES})
+target_link_libraries(poses_publisher ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
