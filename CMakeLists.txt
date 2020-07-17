@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ur5_sorting_system)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS gazebo_msgs roscpp geometry_msgs std_srv
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -68,7 +67,7 @@ find_package(catkin REQUIRED COMPONENTS gazebo_msgs roscpp geometry_msgs std_srv
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
-add_message_files(FILES blocks_poses.msg)
+add_message_files(FILES objects_poses.msg)
 add_message_files(FILES Tracker.msg)
 
 generate_messages(DEPENDENCIES std_msgs)
@@ -123,12 +122,12 @@ include_directories(
 )
 
 # Declare the executable, along with its source files.
-add_executable(spawner src/blocks_spawner.cpp)
-add_executable(poses_publisher src/blocks_poses_publisher.cpp)
+add_executable(objects_spawner src/objects_spawner.cpp)
+add_executable(objects_poses_publisher src/objects_poses_publisher.cpp)
 
 # Specify libraries against which to link.
-target_link_libraries(spawner ${catkin_LIBRARIES})
-target_link_libraries(poses_publisher ${catkin_LIBRARIES})
+target_link_libraries(objects_spawner ${catkin_LIBRARIES})
+target_link_libraries(objects_poses_publisher ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

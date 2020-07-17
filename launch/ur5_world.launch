@@ -1,51 +1,60 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <launch>
-	<!-- overwriting these args -->
-	<arg name="debug" default="false" />
-	<arg name="gui" default="true" />
-	<arg name="pause" default="false" />
-	<arg name="world" default="$(find ur5_sorting_system)/world/ur5_world.world" />
-	<arg name="limited" default="true"/>
-	<arg name="sim" default="true" />
-	<arg name ="camera_name" default = "camera" />
-	<arg name ="frame_name" default = "frame"/>
-	<arg name = "link_name" default = "world"/>
- 
-	<!-- include gazebo_ros launcher -->
-	<include file="$(find gazebo_ros)/launch/empty_world.launch">
-			<arg name="world_name" value="$(arg world)" />
-			<arg name="debug" value="$(arg debug)" />
-			<arg name="gui" value="$(arg gui)" />
-			<arg name="paused" value="$(arg pause)" />
-			<arg name="use_sim_time" value="true" />
-	</include>
+  <!-- overwriting these args -->
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" default="false"/>
+  <arg name="world" default="mtrn4230/world/ur5_world.world"/>
+  <arg name="limited" default="true"/>
+  <arg name="sim" default="true"/>
+  <arg name="camera_name" default="camera"/>
+  <arg name="frame_name" default="frame"/>
+  <arg name="link_name" default="world"/>
 
-	<!-- spwan ur5 -->
-	<!-- send robot urdf to param server -->
-	<include file="$(find ur_description)/launch/ur5_upload.launch">
-	<arg name="limited" value="$(arg limited)"/>
-	</include>
+  <!-- include gazebo_ros launcher -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <!-- <arg name="use_sim_time" value="true" /> -->
+  </include>
 
-	<!-- push robot_description to factory and spawn robot in gazebo -->
-	<node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.2 -y 0.7" respawn="false" output="screen" />
+  <!-- spawn ur5 -->
+  <!-- send robot urdf to param server -->
+  <include file="$(find ur_description)/launch/ur5_upload.launch">
+    <arg name="limited" value="$(arg limited)"/>
+  </include>
 
-	<include file="$(find ur_gazebo)/launch/controller_utils.launch"/>
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.2 -y 0.7" respawn="false" output="screen"/>
+  <include file="$(find ur_gazebo)/launch/controller_utils.launch"/>
+  <rosparam file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
+  <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="screen"/>
 
-	<rosparam file="$(find ur_gazebo)/controller/arm_controller_ur5.yaml" command="load"/>
-	<node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="screen"/>
+  <!-- Remap follow_joint_trajectory -->
+  <remap if="$(arg sim)" from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
 
-	<!-- Remap follow_joint_trajectory -->
-	<remap if="$(arg sim)" from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
+  <!-- Launch moveit -->
+  <include file="$(find ur5_moveit_config)/launch/move_group.launch">
+    <arg name="limited" default="$(arg limited)"/>
+    <arg name="debug" default="$(arg debug)"/>
+  </include>
 
-	<!-- coloured objects-->
-	<param name="red_box_path" type="str" value="$(find ur5_sorting_system)/urdf/red_box.urdf"/>
-	<param name="blue_box_path" type="str" value="$(find ur5_sorting_system)/urdf/blue_box.urdf"/>
-	<param name="yellow_box_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_box.urdf"/>
-	<param name="crate_path" type="str" value="$(find ur5_sorting_system)/urdf/crate.urdf"/>
+  <!-- path to assorted objects-->
+  <!-- boxes -->
+  <param name="red_box_path" type="str" value="$(find ur5_sorting_system)/urdf/red_box.urdf"/>
+  <param name="blue_box_path" type="str" value="$(find ur5_sorting_system)/urdf/blue_box.urdf"/>
+  <param name="yellow_box_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_box.urdf"/>
 
-	<!-- spawner node -->
-	<node name="spawner" pkg="ur5_sorting_system" type="spawner" output="screen"/>
+  <!-- cylinders -->
+  <param name="red_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/red_cylinder.urdf"/>
+  <param name="blue_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/blue_cylinder.urdf"/>
+  <param name="yellow_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_cylinder.urdf"/>
 
-	<!-- spawn conveyor belt (objects currently stationary) -->
-	<node name="spawn_conveyor_belt" pkg="gazebo_ros" type="spawn_model" args="-file $(find ur5_sorting_system)/urdf/conveyor_belt.urdf -urdf -model conveyor_belt" />
+  <!-- spawner node -->
+  <node name="objects_spawner" pkg="ur5_sorting_system" type="objects_spawner" output="screen"/>
+
+  <!-- spawn table (objects currently stationary) -->
+  <node name="spawn_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find ur5_sorting_system)/urdf/table.urdf -urdf -model table"/>
 </launch>
