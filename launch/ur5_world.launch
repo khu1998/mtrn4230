@@ -4,7 +4,7 @@
   <arg name="debug" default="false"/>
   <arg name="gui" default="true"/>
   <arg name="paused" default="false"/>
-  <arg name="world" default="$(find ur5_sorting_sytem)/world/ur5_world.world"/>
+  <arg name="world" default="$(find ur5_sorting_system)/world/ur5_world.world"/>
   <arg name="limited" default="true"/>
   <arg name="sim" default="true"/>
   <arg name="camera_name" default="camera"/>
