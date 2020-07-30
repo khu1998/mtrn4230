@@ -36,7 +36,7 @@ def inverseKinematics(T_06):
     # theta1 = math.atan2(P_05[1],P_05[0])-math.acos(d4/math.sqrt(P_05[0]*P_05[0]+P_05[1]*P_05[1]))+math.pi/2
 
     # --------- theta5 --------- 
-    num5 = P_06[0]*math.sin(theta1)-P_06[1]*math.cos(theta[1])-d4
+    num5 = P_06[0]*math.sin(theta[1])-P_06[1]*math.cos(theta[1])-d4
     theta[5] = math.acos(num5/d6)
     # theta5 = -math.acos(num5/d6)
 
@@ -73,7 +73,7 @@ def inverseKinematics(T_06):
     # --------- theta4 --------- 
     T_01 = np.array([[math.cos(theta[1]), 0, math.sin(theta[1]), 0],[math.sin(theta[1]), 0, -1*math.cos(theta[1]), 0], [0, 1, 0, 0.1625] , [0,0,0,1]], dtype='f')
     T_12 = np.array([[math.cos(theta[2]), -1*math.sin(theta[2]), 0, -0.425*math.cos(theta[2])] , [math.sin(theta[2]), math.cos(theta[2]), 0, -0.425*math.sin(theta[2])], [0,0,1,0], [0,0,0,1]], dtype='f')
-    T_23 = np.array([[math.cos(theta[3]), -1*math.sin(theta[3]), 0, -0.3922*math.cos(theta[3])], [math.sin(theta[3]), math.cos(theta[3]), 0, -0.3922*math.sin(theta3)], [0,0,1,0], [0,0,0,1]])
+    T_23 = np.array([[math.cos(theta[3]), -1*math.sin(theta[3]), 0, -0.3922*math.cos(theta[3])], [math.sin(theta[3]), math.cos(theta[3]), 0, -0.3922*math.sin(theta[3])], [0,0,1,0], [0,0,0,1]])
 
     T_02 = np.matmul(T_01,T_12)
     T_03 = np.matmul(T_02,T_23)
