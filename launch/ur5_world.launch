@@ -53,7 +53,7 @@
   <param name="yellow_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_cylinder.urdf"/>
 
   <!-- spawner node -->
-  <node name="objects_spawner" pkg="ur5_sorting_system" type="objects_spawner" output="screen"/>
+  <!-- <node name="objects_spawner" pkg="ur5_sorting_system" type="objects_spawner" output="screen"/> -->
 
   <!-- spawn table (objects currently stationary) -->
   <node name="spawn_table" pkg="gazebo_ros" type="spawn_model" args="-file $(find ur5_sorting_system)/urdf/table.urdf -urdf -model table"/>
