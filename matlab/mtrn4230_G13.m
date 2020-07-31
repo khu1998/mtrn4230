@@ -17,9 +17,10 @@ posSub = rossubscriber('/cv_pos');
 
 rostopic list;
 
-positions = [{0, 'red', 0, 1, 2},
-                {1, 'blue', 4, 4, 4},
-                {2, 'yellow', 2, 2, 2}]
+% id, type, x, y, z
+positions = [{0, 'red', 0, 0, 0.6},
+                {1, 'blue', 0, 0.1, 0.6},
+                {2, 'yellow', 0.1, 0, 0.6}]
 
 i = 0;
 while true
@@ -43,6 +44,6 @@ function msgString = toString(positions)
     num_entries = shape(1);
     for i = 1:num_entries
         p = positions(i,:);
-        msgString = msgString + sprintf('%d,%s,%d,%d,%d|',p{1},p{2},p{3},p{4},p{5})
+        msgString = msgString + sprintf('%d,%s,%0.5f,%0.5f,%0.5f|',p{1},p{2},p{3},p{4},p{5})
     end
 end
