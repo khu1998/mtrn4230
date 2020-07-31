@@ -10,7 +10,7 @@ blockposes = rossubscriber('/gazebo/link_states');
 pause(2);
 posdata = receive(blockposes,10);
 imSub = rossubscriber('/camera/color/image_raw');
-pcSub = rossubscriber('/camera/depth/points');
+pcSub = rossubscriber('/camera/depth/image_raw');
 infoSub = rossubscriber('/camera/color/camera_info'); 
 posPub = rospublisher('/cv_pos','std_msgs/String');
 posSub = rossubscriber('/cv_pos');
@@ -24,8 +24,18 @@ positions = [{0, 'red', 0, 0, 0.6},
 
 i = 0;
 while true
+    figure(1)
     testIm  = readImage(imSub.LatestMessage);
     imshow(testIm);
+    
+    figure(2);
+    depthIm  = readImage(pcSub.LatestMessage);
+    depth_max = max(max(depthIm))
+    depth_min = min(min(depthIm))
+    depthImDisplay = (depthIm-depth_min)/(depth_max - depth_min);
+    % for grayscale image, matlab expects values from 0.0 to 1.0, not 0 to
+    % 255
+    imshow(depthImDisplay);
     
     cv_msg = rosmessage(posPub);
     cv_msg.Data = sprintf("%d|%s",i,toString(positions))
