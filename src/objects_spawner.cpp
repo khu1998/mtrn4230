@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   if (vm.count("help"))
   {
     std::cout << desc << '\n';
-    return 1;
+    return 0;
   }
 
   const bool &random = vm.count("random");
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   // publisher for current_blocks
   // ros::Publisher current_blocks_publisher =
   //     nh.advertise<std_msgs::Int8MultiArray>("current_blocks", 1);
-  // std_msgs::Int8MultiArray current_blocks_msg;
+  // std_msgs::Int8MultiArray current_blocks_msg; 
   // current_blocks_msg.data.clear();
 
   // make sure /gazebo/spawn_urdf_model service is service_ready
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> dis(0.0, 0.5);
+  std::uniform_real_distribution<> dis(-0.5, 0.5);
   const auto& spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok())
   {
