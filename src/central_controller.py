@@ -59,6 +59,8 @@ def main():
 
     rospy.Subscriber("cv_pos", String, vision_callback)
 
+    drop_point = ("drop_pt", 0.6, 0.7, 0.3)
+
 
     while not rospy.is_shutdown():
 
@@ -89,7 +91,7 @@ def main():
 
             static_order_plan = []
 
-            # TODO: replace with actual plan
+            # TODO: replace with actual optimized plan
             for key, val in order_input.items():
                 num_required = val
                 for elm in object_list:
@@ -97,6 +99,7 @@ def main():
                         break
                     if elm[0] == key:
                         static_order_plan.append(elm)
+                        static_order_plan.append(drop_point)
                         num_required -= 1
             # End TODO
 
