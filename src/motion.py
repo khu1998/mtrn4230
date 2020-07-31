@@ -7,6 +7,7 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+#from tf.transformations import quarternion_from_euler
 from math import pi
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
@@ -34,7 +35,12 @@ def main():
 
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
-    pose_goal.orientation.w = 1.0  # hard coded orientation, to be figured out
+    pose_goal.orientation.w = 0.5
+    pose_goal.orientation.x = 0.5
+    pose_goal.orientation.y = 0.5
+    pose_goal.orientation.z = -0.5
+    
+      # hard coded orientation, to be figured out
 
     while not rospy.is_shutdown():
         try:
