@@ -8,7 +8,7 @@ add_compile_options(-std=c++14)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS gazebo_msgs roscpp geometry_msgs std_srvs std_msgs message_generation)
-
+find_package(Boost REQUIRED COMPONENTS system program_options)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -116,17 +116,14 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_LIBRARIES})
 
 # Declare the executable, along with its source files.
 add_executable(objects_spawner src/objects_spawner.cpp)
 add_executable(objects_poses_publisher src/objects_poses_publisher.cpp)
 
 # Specify libraries against which to link.
-target_link_libraries(objects_spawner ${catkin_LIBRARIES})
+target_link_libraries(objects_spawner ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(objects_poses_publisher ${catkin_LIBRARIES})
 
 ## Declare a C++ library
