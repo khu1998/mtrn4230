@@ -69,16 +69,12 @@ function P3D = toCamera(px, py, d)
     P3D.x = (px - cx_d) * d / fx_d;
     P3D.y = (py - cy_d) * d / fy_d;
     P3D.z = d;
-
 end
 
 function P3D = toGlobal(cam_p3d)
     P3D.x = cam_p3d.y;
     P3D.y = -cam_p3d.x;
     P3D.z = 2.0 - cam_p3d.z;
-    
-    
-
 end
 
 function msgString = toString(positions)
