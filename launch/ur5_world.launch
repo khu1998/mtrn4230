@@ -52,6 +52,11 @@
   <param name="blue_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/blue_cylinder.urdf"/>
   <param name="yellow_cylinder_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_cylinder.urdf"/>
 
+  <!-- triangles -->
+  <param name="red_triangle_path" type="str" value="$(find ur5_sorting_system)/urdf/red_triangle.urdf"/>
+  <param name="blue_triangle_path" type="str" value="$(find ur5_sorting_system)/urdf/blue_triangle.urdf"/>
+  <param name="yellow_triangle_path" type="str" value="$(find ur5_sorting_system)/urdf/yellow_triangle.urdf"/>
+
   <!-- spawner node -->
   <!-- <node name="objects_spawner" pkg="ur5_sorting_system" type="objects_spawner" output="screen"/> -->
 
