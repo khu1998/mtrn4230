@@ -39,9 +39,9 @@ int main(int argc, char **argv)
   desc.add_options()
     ("help,h", "produce help message")
     ("delay,d", boost::program_options::value<int>(&delay)->default_value(10), "delay between object spawn. if delay is less than 0, user is prompted to press ENTER before object is spawned")
-    ("colours,c", boost::program_options::value<std::vector<std::string>>(&colours), "colours to use to spawn objects. available colours: blue, red, yellow")
+    ("colours,c", boost::program_options::value<std::vector<std::string>>(&colours), "colours to use to spawn objects. available colours: blue red yellow")
     ("number-of-picks,n", boost::program_options::value<unsigned int>(&number_of_picks)->default_value(10), "number of objects to be picked up by the robot")
-    ("shapes,s", boost::program_options::value<std::vector<std::string>>(&shapes), "shapes to use to spawn objects. available shapes: box")
+    ("shapes,s", boost::program_options::value<std::vector<std::string>>(&shapes), "shapes to use to spawn objects. available shapes: box cylinder triangle")
     ("random,r", "object spawn is random otherwise fixed location in the centre of the table")
   ;
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> dis(-0.5, 0.5);
+  std::uniform_real_distribution<> dis(-0.45, 0.45);
   const auto& spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok())
   {
