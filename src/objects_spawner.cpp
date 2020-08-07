@@ -38,10 +38,10 @@ int main(int argc, char **argv)
   boost::program_options::options_description desc("Options");
   desc.add_options()
     ("help,h", "produce help message")
-    ("delay,d", boost::program_options::value<int>(&delay)->default_value(10), "delay between object spawn. if delay is less than 0, user is prompted to press ENTER before object is spawned")
-    ("colours,c", boost::program_options::value<std::vector<std::string>>(&colours), "colours to use to spawn objects. available colours: blue red yellow")
-    ("number-of-picks,n", boost::program_options::value<unsigned int>(&number_of_picks)->default_value(10), "number of objects to be picked up by the robot")
-    ("shapes,s", boost::program_options::value<std::vector<std::string>>(&shapes), "shapes to use to spawn objects. available shapes: box cylinder triangle")
+    ("delay,d", boost::program_options::value(&delay)->default_value(10), "delay between object spawn. if delay is less than 0, user is prompted to press ENTER before object is spawned")
+    ("colours,c", boost::program_options::value(&colours)->multitoken()->default_value(std::vector<std::string>{"red", "blue", "yellow"}, "red, blue, yellow"), "colours to use to spawn objects. available colours: blue red yellow, if not specified defaults to all")
+    ("number-of-picks,n", boost::program_options::value(&number_of_picks)->default_value(10), "number of objects to be picked up by the robot")
+    ("shapes,s", boost::program_options::value(&shapes)->multitoken()->default_value(std::vector<std::string>{"box", "cylinder", "triangle"}, "box, cylinder, triangle"), "shapes to use to spawn objects. available shapes: box cylinder triangle, if not specified, defaults to all")
     ("random,r", "object spawn is random otherwise fixed location in the centre of the table")
   ;
 
