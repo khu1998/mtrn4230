@@ -2,7 +2,7 @@ clear all;
 close all;
 
 
-ipaddress = '10.0.0.75';
+ipaddress = '10.0.0.76';
 robotType = 'Gazebo'
 rosshutdown;
 rosinit(ipaddress);
@@ -25,7 +25,7 @@ positions = [{0, 'red', 0, 0, 0.6},
 % pixel positions are in x,y format
 pixel_positions = [167 87; 200 200; 400 400;];
             
-i = 0;
+msg_counter = 6;
 while true
     figure(1)
     testIm  = readImage(imSub.LatestMessage);
@@ -48,11 +48,13 @@ while true
     end
     
     cv_msg = rosmessage(posPub);
-    cv_msg.Data = sprintf("%d|%s",i,toString(positions))
+    cv_msg.Data = sprintf("%d|%s",msg_counter,toString(positions))
     send(posPub,cv_msg);
     
-    i = i + 1;
-    pause(1)
+    saveIms("img"+msg_counter, testIm, depthIm, depthImDisplay)
+    
+    msg_counter = msg_counter + 1;
+    pause(10)
 %     msg = receive(posSub,3)
     
       
@@ -78,11 +80,17 @@ function P3D = toGlobal(cam_p3d)
 end
 
 function msgString = toString(positions)
-    msgString=""
+    msgString="";
     shape = size(positions);
     num_entries = shape(1);
     for i = 1:num_entries
         p = positions(i,:);
         msgString = msgString + sprintf('%d,%s,%0.5f,%0.5f,%0.5f|',p{1},p{2},p{3},p{4},p{5});
     end
+end
+
+function saveIms(name, testIm, depthIm, depthImDisplay)
+    imwrite(testIm,name+"_rgb.png")
+    imwrite(depthIm,name+"_d.png")
+    imwrite(depthImDisplay,name+"_ddisplay.png")
 end
