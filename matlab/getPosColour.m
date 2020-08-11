@@ -1,10 +1,16 @@
-function [stats,xPos,yPos] = getPosColour(image, colour)
+function [xPos,yPos,zPos] = getPosColour(RGB, depth, colour)
+    % if no colour selected return nothing
+    if colour == 0 
+        [xPos,yPos,zPos] = 0;
+        return 
+    end
     %colour: red=1,blue=2,yellow=3
-    blocks = imread(image);
-    figure(1);
+    blocks = RGB;%imread(RGB);
+    %figure(3);
     conveyerMask = getConveyerMask(blocks);
     % show conveyer mask
-    imshow(conveyerMask)
+    %imshow(conveyerMask)
+    %title('Conveyer Mask');
     % Convert RGB image to chosen color space
     I = blocks;
     if colour == 1
@@ -31,14 +37,15 @@ function [stats,xPos,yPos] = getPosColour(image, colour)
             (I(:,:,3) >= channel3(1) ) & (I(:,:,3) <= channel3(2));
     % remove objects not on conveyer
     BW = BW & conveyerMask;
-    figure(2);
-    subplot(2,1,1);
+    %figure(4);
+    %subplot(1,2,1);
     % display original RGB image
-    imshow(blocks);
-    axis on;
-    subplot(2,1,2);
+    %imshow(blocks);
+    %title('Original RGB');
+    %axis on;
+    %subplot(1,2,2);
     % display black/white mask of red objects
-    imshow(BW);
+    %imshow(BW);
     BW = bwlabel(BW,4);
     stats = regionprops(BW, 'BoundingBox','Centroid','area');
     % area of each object
@@ -56,10 +63,12 @@ function [stats,xPos,yPos] = getPosColour(image, colour)
     end
     xPos = pos(:,1);
     yPos = pos(:,2);
-    hold on
+    %hold on
     % display centroids
-    plot(xPos,yPos,'b*');
-    axis on;
+    %plot(xPos,yPos,'b*');
+    %title('Object Mask with Centroids Marked')
+    %axis on;
+    zPos = depth(round(xPos),round(yPos));
     %[H,T,R] = hough(BW,'RhoResolution',0.5,'Theta',-90:0.5:89.5);
 end
 

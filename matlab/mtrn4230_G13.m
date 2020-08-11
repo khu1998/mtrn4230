@@ -59,38 +59,39 @@ while true
     
       
 end
+% MOVED FUNCTIONS TO SEPARATE .m scripts
 
-function P3D = toCamera(px, py, d)
-% from http://nicolas.burrus.name/index.php/Research/KinectCalibration
-    % variables themselves come from the infoSub (camera_info subscriber)
-    % messages
-    fx_d = 554.255971187975;
-    fy_d = 554.255971187975;
-    cx_d = 320.5;
-    cy_d = 240.5;
-    P3D.x = (px - cx_d) * d / fx_d;
-    P3D.y = (py - cy_d) * d / fy_d;
-    P3D.z = d;
-end
-
-function P3D = toGlobal(cam_p3d)
-    P3D.x = -cam_p3d.x;
-    P3D.y = cam_p3d.y;
-    P3D.z = 2.0 - cam_p3d.z;
-end
-
-function msgString = toString(positions)
-    msgString="";
-    shape = size(positions);
-    num_entries = shape(1);
-    for i = 1:num_entries
-        p = positions(i,:);
-        msgString = msgString + sprintf('%d,%s,%0.5f,%0.5f,%0.5f|',p{1},p{2},p{3},p{4},p{5});
-    end
-end
-
-function saveIms(name, testIm, depthIm, depthImDisplay)
-    imwrite(testIm,name+"_rgb.png")
-    imwrite(depthIm,name+"_d.png")
-    imwrite(depthImDisplay,name+"_ddisplay.png")
-end
+% function P3D = toCamera(px, py, d)
+% % from http://nicolas.burrus.name/index.php/Research/KinectCalibration
+%     % variables themselves come from the infoSub (camera_info subscriber)
+%     % messages
+%     fx_d = 554.255971187975;
+%     fy_d = 554.255971187975;
+%     cx_d = 320.5;
+%     cy_d = 240.5;
+%     P3D.x = (px - cx_d) * d / fx_d;
+%     P3D.y = (py - cy_d) * d / fy_d;
+%     P3D.z = d;
+% end
+% 
+% function P3D = toGlobal(cam_p3d)
+%     P3D.x = -cam_p3d.x;
+%     P3D.y = cam_p3d.y;
+%     P3D.z = 2.0 - cam_p3d.z;
+% end
+% 
+% function msgString = toString(positions)
+%     msgString="";
+%     shape = size(positions);
+%     num_entries = shape(1);
+%     for i = 1:num_entries
+%         p = positions(i,:);
+%         msgString = msgString + sprintf('%d,%s,%0.5f,%0.5f,%0.5f|',p{1},p{2},p{3},p{4},p{5});
+%     end
+% end
+% 
+% function saveIms(name, testIm, depthIm, depthImDisplay)
+%     imwrite(testIm,name+"_rgb.png")
+%     imwrite(depthIm,name+"_d.png")
+%     imwrite(depthImDisplay,name+"_ddisplay.png")
+% end
