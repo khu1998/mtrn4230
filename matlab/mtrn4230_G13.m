@@ -51,7 +51,7 @@ while true
     cv_msg.Data = sprintf("%d|%s",msg_counter,toString(positions))
     send(posPub,cv_msg);
     
-    saveIms("img"+msg_counter, testIm, depthIm, depthImDisplay)
+    %saveIms("img"+msg_counter, testIm, depthIm, depthImDisplay)
     
     msg_counter = msg_counter + 1;
     pause(10)
