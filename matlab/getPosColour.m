@@ -61,15 +61,21 @@ function [xPos,yPos,zPos] = getPosColour(RGB, depth, colour)
         end
         j = j + 1;
     end
-    xPos = pos(:,1);
-    yPos = pos(:,2);
-    %hold on
-    % display centroids
-    %plot(xPos,yPos,'b*');
-    %title('Object Mask with Centroids Marked')
-    %axis on;
-    zPos = depth(round(xPos),round(yPos));
-    %[H,T,R] = hough(BW,'RhoResolution',0.5,'Theta',-90:0.5:89.5);
+    if pos
+        xPos = pos(:,1);
+        yPos = pos(:,2);
+        %hold on
+        % display centroids
+        %plot(xPos,yPos,'b*');
+        %title('Object Mask with Centroids Marked')
+        %axis on;
+        zPos = depth(round(xPos),round(yPos));
+        %[H,T,R] = hough(BW,'RhoResolution',0.5,'Theta',-90:0.5:89.5);
+    else
+        xPos = -1;
+        yPos = -1;
+        zPos = -1;
+    end
 end
 
 function mask = getConveyerMask(image)
