@@ -1,7 +1,9 @@
 function [xPos,yPos,zPos] = getPosColour(RGB, depth, colour)
     % if no colour selected return nothing
     if colour == 0 
-        [xPos,yPos,zPos] = 0;
+        xPos = -1;
+        yPos = -1;
+        zPos = -1;
         return 
     end
     %colour: red=1,blue=2,yellow=3
