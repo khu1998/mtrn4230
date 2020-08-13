@@ -64,8 +64,8 @@ function [xPos,yPos,zPos] = getPosColour(RGB, depth, colour)
         j = j + 1;
     end
     if pos
-        xPos = pos(:,1);
-        yPos = pos(:,2);
+        xPos = round(pos(:,1));
+        yPos = round(pos(:,2));
         %hold on
         % display centroids
         %plot(xPos,yPos,'b*');
