@@ -1,83 +1,94 @@
-function [xPos,yPos,zPos] = getPosColour(RGB, depth, colour)
-    % if no colour selected return nothing
-    if colour == 0 
-        xPos = -1;
-        yPos = -1;
-        zPos = -1;
-        return 
-    end
-    %colour: red=1,blue=2,yellow=3
-    blocks = RGB;%imread(RGB);
-    %figure(3);
+function [blockstats,xPos,yPos] = getPosColandShape(image, colour, shape)
+    % colour: red=1, blue=2, yellow=3
+    % shape: rectangle = 1, circle = 2, triangle = 3
+    blocks = imread(image);
+    
     conveyerMask = getConveyerMask(blocks);
-    % show conveyer mask
-    %imshow(conveyerMask)
-    %title('Conveyer Mask');
-    % Convert RGB image to chosen color space
+    
     I = blocks;
     if colour == 1
         % Thresholds for channel red colour
         channel1 = [255.000,255.000];
         channel2 = [0.000,5.000];
         channel3 = [0.000,5.000];
+        if shape == 1
+            area_min = 550;
+            area_max = 600;
+        end
+        if shape == 2
+            area_min = 300;
+            area_max = 350;
+        end
+        if shape == 3
+            area_min = 125;
+            area_max = 175;
+        end
     end
     if colour == 2
         % Thresholds for channel blue colour
         channel1 = [0.000,5.000];
         channel2 = [0.000,5.000];
         channel3 = [255.000,255.000];
+        if shape == 1
+            area_min = 550;
+            area_max = 600;
+        end
+        if shape == 2
+            area_min = 300;
+            area_max = 350;
+        end
+        if shape == 3
+            area_min = 125;
+            area_max = 175;
+        end
     end
     if colour == 3
         % Thresholds for channel blue colour
         channel1 = [255.000,255.000];
         channel2 = [255.000,255.000];
         channel3 = [0.000,5.000];
+        if shape == 1
+            area_min = 525;
+            area_max = 600;
+        end
+        if shape == 2
+            area_min = 300;
+            area_max = 350;
+        end
+        if shape == 3
+            area_min = 125;
+            area_max = 175;
+        end
     end
-    % Create mask based on chosen histogram thresholds
+    
     BW = (I(:,:,1) >= channel1(1) ) & (I(:,:,1) <= channel1(2)) & ...
             (I(:,:,2) >= channel2(1) ) & (I(:,:,2) <= channel2(2)) & ...
             (I(:,:,3) >= channel3(1) ) & (I(:,:,3) <= channel3(2));
     % remove objects not on conveyer
     BW = BW & conveyerMask;
-    %figure(4);
-    %subplot(1,2,1);
-    % display original RGB image
-    %imshow(blocks);
-    %title('Original RGB');
-    %axis on;
-    %subplot(1,2,2);
-    % display black/white mask of red objects
-    %imshow(BW);
-    BW = bwlabel(BW,4);
+    figure(1);
+    imshow(BW)
     stats = regionprops(BW, 'BoundingBox','Centroid','area');
-    % area of each object
-    area = cat(1,stats.Area);
-    % co ordinates of each object
-    pos = cat(1,stats.Centroid);
-    % remove objects smaller than 5 area
-    j = 1;
-    for i = 1:length(area)
-        if area(i,1) < 5
-            pos(j,:) = [];
-            j = j - 1;
+    blockstats = regionprops('table', BW, 'all');
+    accepted = blockstats.Area >= area_min & blockstats.Area <= area_max;
+    centroids = cat(1, blockstats.Centroid);
+    
+    row = 1;
+    for i = find(accepted).'
+        if centroids(i,1) ~= 0
+            xPos(row,1) = centroids(i,1);
+            yPos(row,1) = centroids(i,2);
+            row = row + 1;
+        else
+            break
         end
-        j = j + 1;
     end
-    if pos
-        xPos = pos(:,1);
-        yPos = pos(:,2);
-        %hold on
-        % display centroids
-        %plot(xPos,yPos,'b*');
-        %title('Object Mask with Centroids Marked')
-        %axis on;
-        zPos = depth(round(xPos),round(yPos));
-        %[H,T,R] = hough(BW,'RhoResolution',0.5,'Theta',-90:0.5:89.5);
-    else
-        xPos = -1;
-        yPos = -1;
-        zPos = -1;
-    end
+    figure(2);
+    imshow(BW);
+    hold on
+    axis on
+    plot(xPos,yPos,'b*');
+    hold off
 end
 
 function mask = getConveyerMask(image)
