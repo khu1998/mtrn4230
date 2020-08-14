@@ -105,7 +105,8 @@ int main(int argc, char **argv)
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> dis(-0.45, 0.45);
+  std::uniform_real_distribution<> xdis(-0.45, 0.45);
+  std::uniform_real_distribution<> ydis(0.2, 0.45);
   const auto& spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok())
   {
@@ -116,8 +117,8 @@ int main(int argc, char **argv)
       spawn_model_req.model_xml = spawn_object;
       if (random)
       {
-        spawn_model_req.initial_pose.position.x = dis(gen);
-        spawn_model_req.initial_pose.position.y = dis(gen);
+        spawn_model_req.initial_pose.position.x = xdis(gen);
+        spawn_model_req.initial_pose.position.y = ydis(gen);
       }
 
       if (!spawn_client.call(spawn_model_req, spawn_model_resp))
