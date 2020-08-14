@@ -1,4 +1,4 @@
-function [stats,xPos,yPos] = getPosColandShape(image, colour, shape)
+function [xPos,yPos] = getPosColandShape(image, colour, shape)
     % colour: red=1, blue=2, yellow=3
     % shape: rectangle = 1, circle = 2, triangle = 3, any = 4
     blocks = image;%imread(image);
@@ -42,11 +42,17 @@ function [stats,xPos,yPos] = getPosColandShape(image, colour, shape)
         area_max = 70000;
     end
     
-    BW = (I(:,:,1) >= channel1(1) ) & (I(:,:,1) <= channel1(2)) & ...
-            (I(:,:,2) >= channel2(1) ) & (I(:,:,2) <= channel2(2)) & ...
-            (I(:,:,3) >= channel3(1) ) & (I(:,:,3) <= channel3(2));
-    % remove objects not on conveyer
-    BW = BW & conveyerMask;
+    if colour ~= 0
+        BW = (I(:,:,1) >= channel1(1) ) & (I(:,:,1) <= channel1(2)) & ...
+                (I(:,:,2) >= channel2(1) ) & (I(:,:,2) <= channel2(2)) & ...
+                (I(:,:,3) >= channel3(1) ) & (I(:,:,3) <= channel3(2));
+        % remove objects not on conveyer
+        BW = BW & conveyerMask;
+    else
+        xPos = [-1];
+        yPos = [-1];
+        return;
+    end
     %figure(1);
     %imshow(BW)
     stats = regionprops(BW, 'BoundingBox','Centroid','area');
