@@ -1,3 +1,10 @@
+% Symbolic code for the forward kinematics
+% To determine the most critical parameters for plotting the workspace
+% For MTRN4230 Group Project
+% Author: Elliott Smith
+% Date: 14/08/2020
+
+
 syms theta1 theta2 theta3 theta4 theta5 theta6
 
 T_01 = [cos(theta1) 0 sin(theta1) 0;
