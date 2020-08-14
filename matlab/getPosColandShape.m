@@ -1,4 +1,4 @@
-function [blockstats,xPos,yPos] = getPosColandShape(image, colour, shape)
+function [stats,xPos,yPos] = getPosColandShape(image, colour, shape)
     % colour: red=1, blue=2, yellow=3
     % shape: rectangle = 1, circle = 2, triangle = 3, any = 4
     blocks = image;%imread(image);
