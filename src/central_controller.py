@@ -100,10 +100,10 @@ def main():
 
         # Get camera input
 
-        if not object_list:
-            rospy.loginfo("No vision data found")
-            rospy.sleep(0.5)
-            continue
+        # if not object_list:
+        #     rospy.loginfo("No vision data found")
+        #     rospy.sleep(0.5)
+        #     continue
 
         rospy.loginfo("Object list: "+str(object_list))
         rospy.loginfo("Order list: "+str(order_input))
@@ -114,17 +114,23 @@ def main():
 
             static_order_plan = []
 
-            # TODO: replace with actual optimized plan
-            for key, val in order_input.items():
-                num_required = val
-                for elm in object_list:
-                    if num_required == 0:
-                        break
-                    if elm[0] == key:
-                        static_order_plan.append((key,elm))
-                        static_order_plan.append(("dropoff",drop_point))
-                        num_required -= 1
-            # End TODO
+            # # TODO: replace with actual optimized plan
+            # for key, val in order_input.items():
+            #     num_required = val
+            #     for elm in object_list:
+            #         if num_required == 0:
+            #             break
+            #         if elm[0] == key:
+            #             static_order_plan.append((key,elm))
+            #             static_order_plan.append(("dropoff",drop_point))
+            #             num_required -= 1
+            # # End TODO
+            static_order_plan.append(("point1",("shape type/colour", 0.44, 0.3, 0.256)))
+            static_order_plan.append(("dropoff", (drop_point)))
+            static_order_plan.append(("point2", ("shape type/colour", 0.54, 0.2, 0.256)))
+            static_order_plan.append(("dropoff", (drop_point)))
+            static_order_plan.append(("point3", ("shape type/colour", 0.2, 0.5, 0.256)))
+            static_order_plan.append(("dropoff", (drop_point)))
 
         for target in static_order_plan:
             x = target[1][1]
