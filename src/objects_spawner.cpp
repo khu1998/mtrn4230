@@ -7,19 +7,21 @@
 // get urdf file path of blocks from parameter servicer
 // publish all current blocks through topic: /current_blocks
 
-#include <boost/format.hpp>
-#include <boost/program_options.hpp>
-#include <boost/uuid/uuid.hpp>            // uuid class
-#include <boost/uuid/uuid_generators.hpp> // generators
-#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 #include <gazebo_msgs/ApplyBodyWrench.h>
 #include <gazebo_msgs/DeleteModel.h>
 #include <gazebo_msgs/ModelStates.h>
 #include <gazebo_msgs/SpawnModel.h>
-#include <ros/ros.h>
 #include <ros/callback_queue.h>
+#include <ros/ros.h>
+#include <termios.h>
+#include <unistd.h>
 
 #include <array>
+#include <boost/format.hpp>
+#include <boost/program_options.hpp>
+#include <boost/uuid/uuid.hpp>             // uuid class
+#include <boost/uuid/uuid_generators.hpp>  // generators
+#include <boost/uuid/uuid_io.hpp>          // streaming operators etc.
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -27,23 +29,20 @@
 #include <random>
 #include <sstream>
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
-#include <termios.h>
-#include <unistd.h>
+static std::unordered_set<std::string>
+    names;  // object names, only valid ones are kept, i.e. must be within
+            // bounds of spawn location
 
-using name = std::string;
-std::unordered_set<name> names; // object names, only valid ones are kept, i.e. must be within bounds of spawn location
-
-static std::vector<std::string>
-get_spawn_objects_xml(const std::vector<std::string> &colours,
-                      const std::vector<std::string> &shapes,
-                      const ros::NodeHandle &nh);
-static void
-update_objects(const gazebo_msgs::ModelStates &current_model_states);
+static std::vector<std::string> get_spawn_objects_xml(
+    const std::vector<std::string> &colours,
+    const std::vector<std::string> &shapes, const ros::NodeHandle &nh);
+static void update_objects(
+    const gazebo_msgs::ModelStates &current_model_states);
 static int getch();
-static bool within_table_bounds(int x, int y, int z);
+static bool within_table_bounds(double x, double y, double z);
 
 int main(int argc, char **argv) {
   unsigned int number_of_picks;
@@ -70,8 +69,9 @@ int main(int argc, char **argv) {
           "box, cylinder, triangle"),
       "shapes to use to spawn objects. available shapes: box cylinder "
       "triangle, if not specified, defaults to all")(
-      "random,r", "object spawn is random otherwise fixed location in the "
-                  "centre of the table");
+      "random,r",
+      "object spawn is random otherwise fixed location in the "
+      "centre of the table");
 
   boost::program_options::variables_map vm;
   boost::program_options::store(
@@ -93,6 +93,8 @@ int main(int argc, char **argv) {
   ros::ServiceClient wrench_client =
       nh.serviceClient<gazebo_msgs::ApplyBodyWrench>(
           "/gazebo/apply_body_wrench");
+  ros::Subscriber model_states_subscriber =
+      nh.subscribe("/gazebo/model_states", 1, update_objects);
   gazebo_msgs::SpawnModel::Request spawn_model_req;
   gazebo_msgs::SpawnModel::Response spawn_model_resp;
   gazebo_msgs::DeleteModel::Request delete_model_req;
@@ -138,7 +140,7 @@ int main(int argc, char **argv) {
   apply_wrench_req.reference_frame = "world";
 
   auto clear_table = [&]() -> void {
-    for (const auto& name : names) {
+    for (auto name : names) {
       apply_wrench_req.body_name = name + "::base_link";
       apply_wrench_req.start_time = ros::Time::now();
       if (!wrench_client.call(apply_wrench_req, apply_wrench_resp)) {
@@ -154,26 +156,19 @@ int main(int argc, char **argv) {
   };
 
   auto delete_objects = [&]() -> void {
-    for (const auto& name : names) {
+    for (auto name : names) {
       delete_model_req.model_name = name;
       if (!delete_client.call(delete_model_req, delete_model_resp)) {
         ROS_ERROR("failed to connect with gazebo server");
         std::exit(1);
       }
       if (!delete_model_resp.success) {
-        ROS_ERROR("failed to clear table");
+        ROS_ERROR("failed to delete objects");
         std::exit(1);
       }
     }
     names.clear();
   };
-
-  ros::NodeHandle model_handler;
-  ros::CallbackQueue model_state_queue;
-  model_handler.setCallbackQueue(&model_state_queue);
-  ros::Subscriber model_states_subscriber = model_handler.subscribe("/gazebo/model_states", 1, update_objects);
-  ros::AsyncSpinner spinner(1, &model_state_queue);
-  spinner.start();
 
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
@@ -187,35 +182,39 @@ int main(int argc, char **argv) {
         ROS_INFO_STREAM(
             "Press <ENTER> to spawn a new object, <d> to delete all objects, "
             "<c> to clear objects off table, or <q> to stop");
-        switch (::getch()) {
-        case 10:
-          ROS_INFO_STREAM("Spawning new object...");
-          break;
-        case 99:
-          ROS_INFO_STREAM("Clearing objects off table...");
-          clear_table();
-          ROS_INFO_STREAM("Finished clearing objects off table");
-          continue;
-          break;
-        case 100:
-          ROS_INFO_STREAM("Deleting all objects on table...");
-          delete_objects();
-          ROS_INFO_STREAM("Finished deleting objects off table");
-          continue;
-          break;
-        case 113:
-          ROS_INFO_STREAM("Quitting...");
-          return 0;
-          break;
-        default:
-          ROS_INFO_STREAM("Please press one of <ENTER>, <d>, <c>, or <q>");
-          continue;
-          break;
+        auto ch = ::getch();
+        ros::spinOnce();  // update model states
+        switch (ch) {
+          case 10:
+            ROS_INFO_STREAM("Spawning new object...");
+            break;
+          case 99:
+            ROS_INFO_STREAM("Clearing objects off table...");
+            clear_table();
+            ROS_INFO_STREAM("Finished clearing objects off table");
+            continue;
+            break;
+          case 100:
+            ROS_INFO_STREAM("Deleting all objects on table...");
+            delete_objects();
+            ROS_INFO_STREAM("Finished deleting objects off table");
+            continue;
+            break;
+          case 113:
+            ROS_INFO_STREAM("Quitting...");
+            return 0;
+            break;
+          default:
+            ROS_INFO_STREAM("Please press one of <ENTER>, <d>, <c>, or <q>");
+            continue;
+            break;
         }
       }
 
       // initialize model_name
-      spawn_model_req.model_name = "object-" + boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+      spawn_model_req.model_name =
+          "object-" +
+          boost::lexical_cast<std::string>(boost::uuids::random_generator()());
       spawn_model_req.model_xml = spawn_object;
       if (random) {
         spawn_model_req.initial_pose.position.x = xdis(gen);
@@ -230,7 +229,7 @@ int main(int argc, char **argv) {
         ROS_ERROR("failed to spawn model");
         return 1;
       }
-      
+
       ros::spinOnce();
 
       if (delay >= 0) {
@@ -241,10 +240,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-static std::vector<std::string>
-get_spawn_objects_xml(const std::vector<std::string> &colours,
-                      const std::vector<std::string> &shapes,
-                      const ros::NodeHandle &nh) {
+static std::vector<std::string> get_spawn_objects_xml(
+    const std::vector<std::string> &colours,
+    const std::vector<std::string> &shapes, const ros::NodeHandle &nh) {
   auto read_file = [&](const std::string &path) -> std::string {
     auto stream = std::ifstream(path, std::ios::in | std::ios::ate);
     auto file_size = stream.tellg();
@@ -272,35 +270,37 @@ get_spawn_objects_xml(const std::vector<std::string> &colours,
   return spawn_objects_xml;
 }
 
-static void
-update_objects(const gazebo_msgs::ModelStates &current_model_states) {
+static void update_objects(
+    const gazebo_msgs::ModelStates &current_model_states) {
   for (std::size_t i = 0; i < current_model_states.name.size(); ++i) {
-    if (names.find(current_model_states.name[i]) != names.end()) {
-      continue;
+    double x = current_model_states.pose[i].position.x;
+    double y = current_model_states.pose[i].position.y;
+    double z = current_model_states.pose[i].position.z;
+    if (current_model_states.name[i].find("object-") == 0) {
+      if (within_table_bounds(x, y, z)) {
+        names.insert(current_model_states.name[i]);
+      } else {
+        auto it = names.find(current_model_states.name[i]);
+        if (it != names.end()) {
+          names.erase(it);
+        }
+      }
     }
-    int x = current_model_states.pose[i].position.x;
-    int y = current_model_states.pose[i].position.y;
-    int z = current_model_states.pose[i].position.z;
-    if (current_model_states.name[i].find("object-") != 0 || within_table_bounds(x, y, z)) {
-      continue;
-    }
-    names.insert(current_model_states.name[i]);
   }
 }
 
 static int getch() {
   static struct termios oldt, newt;
-  tcgetattr(STDIN_FILENO, &oldt); // save old settings
+  tcgetattr(STDIN_FILENO, &oldt);  // save old settings
   newt = oldt;
-  newt.c_lflag &= ~ICANON & ~ECHO;         // disable buffering and echo of character in terminal
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt); // apply new settings
-  int c = getchar(); // read character (non-blocking)
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // restore old settings
+  newt.c_lflag &=
+      ~ICANON & ~ECHO;  // disable buffering and echo of character in terminal
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+  int c = getchar();                        // read character (non-blocking)
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
   return c;
 }
 
-static bool within_table_bounds(int x, int y, int z) {
-  return (-0.5 <= x && x <= 0.5) &&
-         (-0.5 <= y && y <= 0.5) &&
-         (0.19 <= z && z <= 0.21);
+static bool within_table_bounds(double x, double y, double z) {
+  return (-0.5 <= x && x <= 0.5) && (-0.5 <= y && y <= 0.5);
 }
