@@ -1,7 +1,7 @@
 function [xPos,yPos] = getPosColandShape(image, colour, shape)
     % colour: red=1, blue=2, yellow=3
     % shape: rectangle = 1, circle = 2, triangle = 3, any = 4
-    blocks = imread(image);
+    blocks = image; %imread(image);
     
     conveyerMask = getConveyerMask(blocks);
     
@@ -28,20 +28,26 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
     if shape == 1
         area_min = 500;
         area_max = 600;
-        perimeter_min = 85;
-        perimeter_max = 100;
+        perimeter_min = 84;
+        perimeter_max = 95;
     end
     if shape == 2
-        area_min = 275;
-        area_max = 375;
-        perimeter_min = 55;
-        perimeter_max = 70;
+        area_min = 1100;
+        area_max = 1300;
+        perimeter_min = 95;
+        perimeter_max = 130;
     end
     if shape == 3
-        area_min = 100;
-        area_max = 200;
-        perimeter_min = 40;
-        perimeter_max = 55;
+        area_min = 500;
+        area_max = 600;
+        perimeter_min = 95;
+        perimeter_max = 105;
+    end
+    if shape == 4
+        area_min = 0;
+        area_max = 6000;
+        perimeter_min = 0;
+        perimeter_max = 1000;
     end
         
     if colour ~= 0	
@@ -76,12 +82,12 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
         xPos = [-1];
         yPos = [-1];
     end
-    figure(2);
-    imshow(BW);
-    hold on
-    axis on
-    plot(xPos,yPos,'b*');
-    hold off
+%     figure(2);
+%     imshow(BW);
+%     hold on
+%     axis on
+%     plot(xPos,yPos,'b*');
+%     hold off
 end
 
 function mask = getConveyerMask(image)

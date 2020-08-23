@@ -74,7 +74,10 @@ def main():
 
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
-    pose_goal.orientation.w = 1.0  # hard coded orientation, to be figured out
+    pose_goal.orientation.w = 0.5
+    pose_goal.orientation.x = 0.5
+    pose_goal.orientation.y = 0.5
+    pose_goal.orientation.z = -0.5
 
     rospy.Subscriber("cv_pos", String, vision_callback)
     rospy.Subscriber("cv_order", String, order_callback)
