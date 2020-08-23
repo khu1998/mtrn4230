@@ -10,6 +10,7 @@ import geometry_msgs.msg
 from math import pi
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
+from gripper import toggle_gripper
 
 # TODO:
 #  - communication block position to pick up
@@ -83,7 +84,7 @@ def main():
     rospy.Subscriber("cv_order", String, order_callback)
 
 
-    drop_point = ("drop_pt", 0.6, 0.7, 0.3)
+    drop_point = ("drop_pt", 0.0, 0.2, 0.45)
 
 
     while not rospy.is_shutdown():
@@ -91,6 +92,7 @@ def main():
         # Get camera input as list of object positions
 
         # Get order input
+
 
         # Construct high-level path/order := L
 
@@ -129,7 +131,7 @@ def main():
         for target in static_order_plan:
             x = target[1][1]
             y = target[1][2]
-            z = target[1][3]+0.2
+            z = target[1][3]+0.005
 
             rospy.loginfo("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2))
             pose_goal.position.x = 0.0 + x
@@ -146,6 +148,15 @@ def main():
 
             # Calling `stop()` ensures that there is no residual movement
             group.stop()
+                
+            if target[0] == "dropoff":
+                #rotate arm to dropoff location
+                
+                toggle_gripper(False)
+                #rotate arm back to initial position
+            else:
+                toggle_gripper(True)
+                pass
             
             # It is always good to clear your targets after planning with poses.
             # Note: there is no equivalent function for clear_joint_value_targets()
