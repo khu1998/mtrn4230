@@ -15,6 +15,7 @@ from gripper import toggle_gripper
 # TODO:
 #  - communication block position to pick up
 
+USE_GRIPPER = False
 
 object_list = []
 order_input = {}
@@ -54,6 +55,10 @@ def order_callback(string):
         order_input[e[0]] = int(e[1])
     #rospy.loginfo(" order callback: " +str(order_input))
 
+def status_callback(string):
+    rospy.loginfo("Status callback triggered: "+string.data)
+
+
 def main():
     global object_list, static_order_plan, order_input
     moveit_commander.roscpp_initialize(sys.argv)
@@ -82,12 +87,18 @@ def main():
 
     rospy.Subscriber("cv_pos", String, vision_callback)
     rospy.Subscriber("cv_order", String, order_callback)
+    status_pub = rospy.Publisher("cv_status", String, queue_size=3)
+    rospy.Subscriber("cv_status", String, status_callback)
 
+    status_pub.publish(String("Robot connected."))
 
     drop_point = ("drop_pt", 0.0, 0.2, 0.45)
 
+    connected_index = 0
 
     while not rospy.is_shutdown():
+
+        #
 
         # Get camera input as list of object positions
 
@@ -104,6 +115,8 @@ def main():
 
         if not object_list:
             rospy.loginfo("No vision data found")
+            status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
+            connected_index = connected_index+1
             rospy.sleep(0.5)
             continue
 
@@ -134,6 +147,8 @@ def main():
             z = target[1][3]+0.005
 
             rospy.loginfo("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2))
+            status_pub.publish(String("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2)))
+
             pose_goal.position.x = 0.0 + x
             pose_goal.position.y = -0.7 + y
             pose_goal.position.z = -0.2 + z
@@ -148,15 +163,16 @@ def main():
 
             # Calling `stop()` ensures that there is no residual movement
             group.stop()
-                
-            if target[0] == "dropoff":
-                #rotate arm to dropoff location
-                
-                toggle_gripper(False)
-                #rotate arm back to initial position
-            else:
-                toggle_gripper(True)
-                pass
+              
+            if USE_GRIPPER:    
+                if target[0] == "dropoff":
+                    #rotate arm to dropoff location
+                    
+                    toggle_gripper(False)
+                    #rotate arm back to initial position
+                else:
+                    toggle_gripper(True)
+                    pass
             
             # It is always good to clear your targets after planning with poses.
             # Note: there is no equivalent function for clear_joint_value_targets()
@@ -166,6 +182,7 @@ def main():
 
         rospy.loginfo("Order completed!")
         rospy.loginfo("Moving on to next order.")
+        status_pub.publish(String("Order completed. Moving on to next order."))
         static_order_plan = []
 
 if __name__ == "__main__":
