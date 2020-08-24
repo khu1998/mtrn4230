@@ -16,6 +16,7 @@ from gripper import toggle_gripper
 #  - communication block position to pick up
 
 USE_GRIPPER = False
+DEBUG_DELL = False
 
 object_list = []
 order_input = {}
@@ -104,7 +105,6 @@ def main():
 
         # Get order input
 
-
         # Construct high-level path/order := L
 
         # For obj in L:
@@ -113,12 +113,13 @@ def main():
 
         # Get camera input
 
-        if not object_list:
-            rospy.loginfo("No vision data found")
-            status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
-            connected_index = connected_index+1
-            rospy.sleep(0.5)
-            continue
+        if not DEBUG_DELL:
+            if not object_list:
+                rospy.loginfo("No vision data found")
+                status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
+                connected_index = connected_index+1
+                rospy.sleep(0.5)
+                continue
 
         rospy.loginfo("Object list: "+str(object_list))
         rospy.loginfo("Order list: "+str(order_input))
@@ -128,18 +129,25 @@ def main():
             # Construct high-level path/order := L
 
             static_order_plan = []
-
-            # TODO: replace with actual optimized plan
-            for key, val in order_input.items():
-                num_required = val
-                for elm in object_list:
-                    if num_required == 0:
-                        break
-                    if elm[0] == key:
-                        static_order_plan.append((key,elm))
-                        static_order_plan.append(("dropoff",drop_point))
-                        num_required -= 1
-            # End TODO
+            if DEBUG_DELL:
+                static_order_plan.append(("point1",("shape type/colour", 0.44, 0.3, 0.256)))
+                static_order_plan.append(("dropoff", (drop_point)))
+                static_order_plan.append(("point2", ("shape type/colour", 0.54, 0.2, 0.256)))
+                static_order_plan.append(("dropoff", (drop_point)))
+                static_order_plan.append(("point3", ("shape type/colour", 0.2, 0.5, 0.256)))
+                static_order_plan.append(("dropoff", (drop_point)))
+            else:
+                # TODO: replace with actual optimized plan
+                for key, val in order_input.items():
+                    num_required = val
+                    for elm in object_list:
+                        if num_required == 0:
+                            break
+                        if elm[0] == key:
+                            static_order_plan.append((key,elm))
+                            static_order_plan.append(("dropoff",drop_point))
+                            num_required -= 1
+                # End TODO
 
         for target in static_order_plan:
             x = target[1][1]
@@ -161,19 +169,33 @@ def main():
             else:
                 rospy.logwarn("Path planning was a failure")
 
+            # Naive path plan. After pick up, it moves to "central location", drop
+            # it off at the drop off zone, then return back to the central location.
+            if target[0] == "dropoff":
+                #rotate arm to dropoff location
+                goal = group.get_current_joint_values()
+                goal[0] = 0 #Move to Drop off zone at theta1 = 0.
+                if group.go(goal, wait=True):
+                    rospy.loginfo("At dropoff zone. Dropping item.")
+                    if USE_GRIPPER:
+                        toggle_gripper(False)
+                else:
+                    rospy.logwarn("Failed to drop off at dropoff zone.")
+
+                #rotate arm back to initial position
+                goal[0] = -pi/2
+                if group.go(goal, wait=True):
+                    rospy.loginfo("Back to init location.")
+                else:
+                    rospy.logwarn("Failed to move to init location.")
+            else:
+                if USE_GRIPPER:
+                    toggle_gripper(True)
+                pass
             # Calling `stop()` ensures that there is no residual movement
             group.stop()
-              
-            if USE_GRIPPER:    
-                if target[0] == "dropoff":
-                    #rotate arm to dropoff location
-                    
-                    toggle_gripper(False)
-                    #rotate arm back to initial position
-                else:
-                    toggle_gripper(True)
-                    pass
-            
+                
+
             # It is always good to clear your targets after planning with poses.
             # Note: there is no equivalent function for clear_joint_value_targets()
             group.clear_pose_targets()
