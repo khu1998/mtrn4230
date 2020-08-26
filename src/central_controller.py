@@ -24,7 +24,7 @@ from gripper import toggle_gripper
 #   export ROS_MASTER_URI=http://"$ROS_IP":11311/
 #   python ./simulation_ws/src/mtrn4230/src/central_controller.py
 
-USE_GRIPPER = True
+USE_GRIPPER = False
 DEBUG_DELL = False
 
 object_list = []
@@ -214,6 +214,8 @@ def main():
             # it off at the drop off zone, then return back to the central location.
             if target[0] == "dropoff":
                 #rotate arm to dropoff location
+                rospy.loginfo("Dropping off")
+
                 goal = group.get_current_joint_values()
                 goal[0] = 0
                 # print(goal)
@@ -236,6 +238,8 @@ def main():
                 # else:
                 #     rospy.logwarn("Failed to move to init location.")
             else:
+                rospy.loginfo("Toggling gripper")
+
                 if USE_GRIPPER:
                     toggle_gripper(True)
                     # gripper(scene,group)
