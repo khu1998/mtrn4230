@@ -173,8 +173,9 @@ int main(int argc, char **argv) {
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> xdis(-0.4, 0.4);
   std::uniform_real_distribution<> ydis(0.2, 0.4);
-  const auto &spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
+  auto spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok()) {
+    std::shuffle(spawn_objects.begin(), spawn_objects.end(), gen);
     for (const auto &spawn_object : spawn_objects) {
       if (delay < 0) {
         ROS_INFO_STREAM(
