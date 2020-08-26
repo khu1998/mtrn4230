@@ -3,22 +3,22 @@
 
 <link name="base_link">
   <collision>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
       <cylinder length="0.025" radius="0.065"/>
     </geometry>
   </collision>
 
   <visual>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
       <cylinder length="0.025" radius="0.065"/>
     </geometry>
   </visual>
 
   <inertial>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
-    <mass value="0.1"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0.01" />
     <inertia
       ixx="0.00001" ixy="0.0" ixz="0.0"
       iyy="0.00001" iyz="0.0"
@@ -28,6 +28,8 @@
 
 <gazebo reference="base_link">
   <material>Gazebo/Blue</material>
+    <mu1>99999</mu1>
+    <mu2>99999</mu2>
 </gazebo>
 
 

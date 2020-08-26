@@ -3,22 +3,22 @@
 
 <link name="base_link">
   <collision>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.075 0.075 0.025" />
+      <box size="0.125 0.125 0.025" />
     </geometry>
   </collision>
 
   <visual>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.075 0.075 0.025" />
+      <box size="0.125 0.125 0.025" />
     </geometry>
   </visual>
 
   <inertial>
-    <origin xyz="0 0 0.02" rpy="0 0 0" />
-    <mass value="0.05" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <mass value="0.005" />
     <inertia
       ixx="0.001" ixy="0.0"  ixz="0.0"
       iyy="0.001" iyz="0.0"
@@ -28,8 +28,8 @@
 
 <gazebo reference="base_link">
   <material>Gazebo/Red</material>
-    <mu1>5</mu1>
-    <mu2>5</mu2>
+    <mu1>99999</mu1>
+    <mu2>99999</mu2>
 </gazebo>
 
 </robot>
