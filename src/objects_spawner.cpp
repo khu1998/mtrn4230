@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
 
   auto clear_table = [&]() -> void {
     for (auto name : names) {
+      ROS_INFO_STREAM("removing " << name << " from table.");
       apply_wrench_req.body_name = name + "::base_link";
       apply_wrench_req.start_time = ros::Time::now();
       if (!wrench_client.call(apply_wrench_req, apply_wrench_resp)) {
@@ -160,7 +161,7 @@ int main(int argc, char **argv) {
       clear_table();
     }
   };
-  model_states_subscriber = nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
+  const auto& clear_table_subscriber = nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
 
   auto delete_objects = [&]() -> void {
     for (auto name : names) {
@@ -283,6 +284,7 @@ static void update_objects(
     double x = current_model_states.pose[i].position.x;
     double y = current_model_states.pose[i].position.y;
     double z = current_model_states.pose[i].position.z;
+    ROS_INFO_STREAM("On object name: " << current_model_states.name[i]);
     if (current_model_states.name[i].find("object-") == 0) {
       if (within_table_bounds(x, y, z)) {
         names.insert(current_model_states.name[i]);
