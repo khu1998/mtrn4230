@@ -188,7 +188,8 @@ def main():
         
         status_pub.publish(String("Order received: "+str(order_input)))
         rospy.sleep(1)
-
+        object_list = []
+        order_input = {}
         for target in static_order_plan:
             x = target[1][1]
             y = target[1][2]
@@ -237,7 +238,7 @@ def main():
             else:
                 if USE_GRIPPER:
                     toggle_gripper(True)
-                    #gripper(scene,group)
+                    # gripper(scene,group)
                 group.set_max_velocity_scaling_factor(0.1)
                 group.set_max_acceleration_scaling_factor(0.1)
                 
