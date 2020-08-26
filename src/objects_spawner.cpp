@@ -155,12 +155,12 @@ int main(int argc, char **argv) {
     }
     names.clear();
   };
-  auto clear_table_callback = [&](const std_msgs::Bool::ConstPtr& msg) -> void {
+  boost::function<void (const std_msgs::Bool::ConstPtr&)> clear_table_callback = [&](const std_msgs::Bool::ConstPtr& msg) -> void {
     if (msg->data) {
       clear_table();
     }
-  }
-  ros::Subscriber model_states_subscriber = nh.subscribe("/clear_table", 1, clear_table_callback);
+  };
+  model_states_subscriber = nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
 
   auto delete_objects = [&]() -> void {
     for (auto name : names) {
