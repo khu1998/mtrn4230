@@ -12,8 +12,17 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from gripper import toggle_gripper
 
-# TODO:
-#  - communication block position to pick up
+
+# IMPORTANT SETUP INFO
+# In the terminal that runs central_controller.py,
+# the variable ROS_MASTER_URI must be set up
+# For Jamie's setup:
+#   source ./simulation_ws/devel/setup.bash
+#   export SVGA_VGPU10=0
+#   export ROS_IP=$(ifconfig enp0s17 | grep "inet addr" | cut -d':' -f2 | cut -d' ' -f1)
+#   echo $ROS_IP
+#   export ROS_MASTER_URI=http://"$ROS_IP":11311/
+#   python ./simulation_ws/src/mtrn4230/src/central_controller.py
 
 USE_GRIPPER = True
 DEBUG_DELL = False
@@ -21,6 +30,7 @@ DEBUG_DELL = False
 object_list = []
 order_input = {}
 static_order_plan = []
+move_robot = False
 
 def vision_callback(string):
     global object_list
@@ -69,9 +79,16 @@ def gripper(scene,group):
     names = scene.get_known_object_names_in_roi(x-0.1,y-0.1,z-0.25,x+0.1,y+0.1,z)
     rospy.logwarn(names)
 
+def move_robot_callback(string):
+    global move_robot
+    if string.data == "On":
+        move_robot = True
+    else:
+        move_robot = False
+    rospy.loginfo("MoveRobot callback triggered: "+string.data+"\nMoveRobot value is {}\n".format("True" if move_robot else "False"))
 
 def main():
-    global object_list, static_order_plan, order_input
+    global object_list, static_order_plan, order_input, move_robot
     moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node('motion_planner', anonymous=True)
                     
@@ -103,6 +120,7 @@ def main():
     rospy.Subscriber("cv_order", String, order_callback)
     status_pub = rospy.Publisher("cv_status", String, queue_size=3)
     rospy.Subscriber("cv_status", String, status_callback)
+    rospy.Subscriber("cv_move_robot", String, move_robot_callback)
 
     status_pub.publish(String("Robot connected."))
 
@@ -137,6 +155,12 @@ def main():
         rospy.loginfo("Object list: "+str(object_list))
         rospy.loginfo("Order list: "+str(order_input))
         # Get order input
+
+        if not move_robot:
+            rospy.loginfo("Waiting for robot move enable.")
+            status_pub.publish(String("Waiting for robot move enable."))
+            continue
+
         if not static_order_plan:
 
             # Construct high-level path/order := L
@@ -161,6 +185,9 @@ def main():
                             static_order_plan.append(("dropoff",drop_point))
                             num_required -= 1
                 # End TODO
+        
+        status_pub.publish(String("Order received: "+str(order_input)))
+        rospy.sleep(1)
 
         for target in static_order_plan:
             x = target[1][1]
