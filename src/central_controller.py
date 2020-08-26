@@ -15,7 +15,7 @@ from gripper import toggle_gripper
 # TODO:
 #  - communication block position to pick up
 
-USE_GRIPPER = False
+USE_GRIPPER = True
 DEBUG_DELL = False
 
 object_list = []
@@ -59,6 +59,16 @@ def order_callback(string):
 def status_callback(string):
     rospy.loginfo("Status callback triggered: "+string.data)
 
+def gripper(scene,group):
+    pose = group.get_current_pose()
+    rospy.loginfo(pose)
+    x = pose.pose.position.x
+    y = pose.pose.position.y
+    z = pose.pose.position.z
+
+    names = scene.get_known_object_names_in_roi(x-0.1,y-0.1,z-0.25,x+0.1,y+0.1,z)
+    rospy.logwarn(names)
+
 
 def main():
     global object_list, static_order_plan, order_input
@@ -69,6 +79,8 @@ def main():
     scene = moveit_commander.PlanningSceneInterface()  # set motion planning scene
     rospy.sleep(2)  # sleep to load scene otherwise table gets skipped
     group = moveit_commander.MoveGroupCommander("manipulator")
+    group.set_max_velocity_scaling_factor(0.1)
+    group.set_max_acceleration_scaling_factor(0.3)
 
     # add table as collision object
     # table pose frame is same as robot frame
@@ -78,6 +90,7 @@ def main():
     table_pose.pose.position.y = -0.7
     table_pose.pose.position.z = -0.1
     scene.add_box("table", table_pose, size=(1, 1, 0.2))
+
 
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
@@ -174,24 +187,33 @@ def main():
             if target[0] == "dropoff":
                 #rotate arm to dropoff location
                 goal = group.get_current_joint_values()
-                goal[0] = 0 #Move to Drop off zone at theta1 = 0.
+                goal[0] = 0
+                # print(goal)
+                # print(goal_step)
+                # for step in range(10):
+                #     goal[0] = goal[0]-goal_step 
                 if group.go(goal, wait=True):
                     rospy.loginfo("At dropoff zone. Dropping item.")
                     if USE_GRIPPER:
                         toggle_gripper(False)
                 else:
                     rospy.logwarn("Failed to drop off at dropoff zone.")
-
-                #rotate arm back to initial position
-                goal[0] = -pi/2
-                if group.go(goal, wait=True):
-                    rospy.loginfo("Back to init location.")
-                else:
-                    rospy.logwarn("Failed to move to init location.")
+                
+                group.set_max_velocity_scaling_factor(1)
+                group.set_max_acceleration_scaling_factor(1)
+                # #rotate arm back to initial position
+                # goal[0] = -pi/2
+                # if group.go(goal, wait=True):
+                #     rospy.loginfo("Back to init location.")
+                # else:
+                #     rospy.logwarn("Failed to move to init location.")
             else:
                 if USE_GRIPPER:
                     toggle_gripper(True)
-                pass
+                    #gripper(scene,group)
+                group.set_max_velocity_scaling_factor(0.1)
+                group.set_max_acceleration_scaling_factor(0.1)
+                
             # Calling `stop()` ensures that there is no residual movement
             group.stop()
                 
@@ -200,7 +222,7 @@ def main():
             # Note: there is no equivalent function for clear_joint_value_targets()
             group.clear_pose_targets()
 
-        rospy.sleep(0.1) # sleep to give other threads processing time
+            rospy.sleep(0.1) # sleep to give other threads processing time
 
         rospy.loginfo("Order completed!")
         rospy.loginfo("Moving on to next order.")
@@ -209,3 +231,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
