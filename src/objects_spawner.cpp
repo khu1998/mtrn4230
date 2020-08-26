@@ -181,8 +181,8 @@ int main(int argc, char **argv) {
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> xdis(-0.45, 0.45);
-  std::uniform_real_distribution<> ydis(0.2, 0.45);
+  std::uniform_real_distribution<> xdis(-0.4, 0.4);
+  std::uniform_real_distribution<> ydis(0.2, 0.4);
   const auto &spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok()) {
     for (const auto &spawn_object : spawn_objects) {
