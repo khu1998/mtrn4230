@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
     if (msg->data) {
       clear_table();
     }
-  }
+  };
   ros::Subscriber model_states_subscriber = nh.subscribe("/clear_table", 1, clear_table_callback);
 
   auto delete_objects = [&]() -> void {
