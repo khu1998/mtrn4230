@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.83.5 commit date:2020-08-19, commit time:06:07, hash:c2b144df395f</authoring_tool>
     </contributor>
-    <created>2020-08-26T23:45:29</created>
-    <modified>2020-08-26T23:45:29</modified>
+    <created>2020-08-26T23:47:53</created>
+    <modified>2020-08-26T23:47:53</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -77,44 +77,44 @@
   </library_lights>
   <library_images/>
   <library_geometries>
-    <geometry id="Cylinder_001-mesh" name="Cylinder.001">
+    <geometry id="Cylinder_002-mesh" name="Cylinder.002">
       <mesh>
-        <source id="Cylinder_001-mesh-positions">
-          <float_array id="Cylinder_001-mesh-positions-array" count="18">0 0.15 -0.00999999 0 0.15 0.00999999 0.1299038 -0.07499998 -0.00999999 0.1299038 -0.07499998 0.00999999 -0.1299038 -0.07499998 -0.00999999 -0.1299038 -0.07499998 0.00999999</float_array>
+        <source id="Cylinder_002-mesh-positions">
+          <float_array id="Cylinder_002-mesh-positions-array" count="18">0 0.2 -0.00999999 0 0.2 0.00999999 0.173205 -0.1 -0.00999999 0.173205 -0.1 0.00999999 -0.1732051 -0.09999996 -0.00999999 -0.1732051 -0.09999996 0.00999999</float_array>
           <technique_common>
-            <accessor source="#Cylinder_001-mesh-positions-array" count="6" stride="3">
+            <accessor source="#Cylinder_002-mesh-positions-array" count="6" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <source id="Cylinder_001-mesh-normals">
-          <float_array id="Cylinder_001-mesh-normals-array" count="18">0.8660255 0.5 0 0 -1 0 0 0 1 -0.8660254 0.5 0 0 0 -1 0 -1 0</float_array>
+        <source id="Cylinder_002-mesh-normals">
+          <float_array id="Cylinder_002-mesh-normals-array" count="18">0.8660255 0.5 0 0 -1 0 0 0 1 -0.8660253 0.5000001 0 0 0 -1 0 -1 0</float_array>
           <technique_common>
-            <accessor source="#Cylinder_001-mesh-normals-array" count="6" stride="3">
+            <accessor source="#Cylinder_002-mesh-normals-array" count="6" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <source id="Cylinder_001-mesh-map-0">
-          <float_array id="Cylinder_001-mesh-map-0-array" count="48">1 1 0.6666666 0.5 1 0.5 0.6666666 1 0.3333333 0.5 0.6666666 0.5 0.4578461 0.1299999 0.25 0.49 0.04215389 0.13 0.3333333 1 0 0.5 0.3333333 0.5 0.75 0.49 0.9578461 0.1299999 0.5421539 0.13 1 1 0.6666666 1 0.6666666 0.5 0.6666666 1 0.3333333 1 0.3333333 0.5 0.3333333 1 0 1 0 0.5</float_array>
+        <source id="Cylinder_002-mesh-map-0">
+          <float_array id="Cylinder_002-mesh-map-0-array" count="48">1 1 0.6666666 0.5 1 0.5 0.6666666 1 0.3333333 0.5 0.6666666 0.5 0.4578461 0.1299999 0.25 0.49 0.04215389 0.13 0.3333333 1 0 0.5 0.3333333 0.5 0.75 0.49 0.9578461 0.1299999 0.5421539 0.13 1 1 0.6666666 1 0.6666666 0.5 0.6666666 1 0.3333333 1 0.3333333 0.5 0.3333333 1 0 1 0 0.5</float_array>
           <technique_common>
-            <accessor source="#Cylinder_001-mesh-map-0-array" count="24" stride="2">
+            <accessor source="#Cylinder_002-mesh-map-0-array" count="24" stride="2">
               <param name="S" type="float"/>
               <param name="T" type="float"/>
             </accessor>
           </technique_common>
         </source>
-        <vertices id="Cylinder_001-mesh-vertices">
-          <input semantic="POSITION" source="#Cylinder_001-mesh-positions"/>
+        <vertices id="Cylinder_002-mesh-vertices">
+          <input semantic="POSITION" source="#Cylinder_002-mesh-positions"/>
         </vertices>
         <triangles count="8">
-          <input semantic="VERTEX" source="#Cylinder_001-mesh-vertices" offset="0"/>
-          <input semantic="NORMAL" source="#Cylinder_001-mesh-normals" offset="1"/>
-          <input semantic="TEXCOORD" source="#Cylinder_001-mesh-map-0" offset="2" set="0"/>
+          <input semantic="VERTEX" source="#Cylinder_002-mesh-vertices" offset="0"/>
+          <input semantic="NORMAL" source="#Cylinder_002-mesh-normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#Cylinder_002-mesh-map-0" offset="2" set="0"/>
           <p>1 0 0 2 0 1 0 0 2 3 1 3 4 1 4 2 1 5 3 2 6 1 2 7 5 2 8 5 3 9 0 3 10 4 3 11 0 4 12 2 4 13 4 4 14 1 0 15 3 0 16 2 0 17 3 5 18 5 5 19 4 5 20 5 3 21 1 3 22 0 3 23</p>
         </triangles>
       </mesh>
@@ -124,7 +124,7 @@
     <visual_scene id="Scene" name="Scene">
       <node id="Cylinder" name="Cylinder" type="NODE">
         <matrix sid="transform">1 0 0 -0.001009166 0 1 0 -0.01804042 0 0 1 0.009999156 0 0 0 1</matrix>
-        <instance_geometry url="#Cylinder_001-mesh" name="Cylinder"/>
+        <instance_geometry url="#Cylinder_002-mesh" name="Cylinder"/>
       </node>
       <node id="Camera" name="Camera" type="NODE">
         <matrix sid="transform">0.6859207 -0.3240135 0.6515582 7.358891 0.7276763 0.3054208 -0.6141704 -6.925791 0 0.8953956 0.4452714 4.958309 0 0 0 1</matrix>
