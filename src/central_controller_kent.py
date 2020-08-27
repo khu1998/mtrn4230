@@ -24,7 +24,7 @@ from gripper import toggle_gripper
 #   export ROS_MASTER_URI=http://"$ROS_IP":11311/
 #   python ./simulation_ws/src/mtrn4230/src/central_controller.py
 
-USE_GRIPPER = False
+USE_GRIPPER = True
 DEBUG_DELL = False
 
 object_list = []
@@ -34,9 +34,7 @@ move_robot = False
 
 def vision_callback(string):
     global object_list
-    #rospy.loginfo("Vision callback triggered")
     lines = string.data.split('|')
-    msg_id = lines[0]
     elms = lines[1:-1]
 
     object_list = [None]*len(elms)
@@ -52,7 +50,7 @@ def order_callback(string):
     global order_input, static_order_plan
     if static_order_plan:
         return
-    rospy.loginfo("Order callback triggered: "+string.data)
+    rospy.loginfo("Order callback triggered: " + string.data)
     lines = string.data.split('|')
     msg_id = lines[0]
     elms = lines[1:]
@@ -64,12 +62,11 @@ def order_callback(string):
             break
         e = elm.split(',')
         order_input[e[0]] = int(e[1])
-    #rospy.loginfo(" order callback: " +str(order_input))
 
 def status_callback(string):
     rospy.loginfo("Status callback triggered: "+string.data)
 
-def gripper(scene,group):
+def gripper(scene, group):
     pose = group.get_current_pose()
     rospy.loginfo(pose)
     x = pose.pose.position.x
@@ -81,11 +78,9 @@ def gripper(scene,group):
 
 def move_robot_callback(string):
     global move_robot
-    if string.data == "On":
-        move_robot = True
-    else:
-        move_robot = False
-    rospy.loginfo("MoveRobot callback triggered: "+string.data+"\nMoveRobot value is {}\n".format("True" if move_robot else "False"))
+    move_robot = string.data == "On"
+    rospy.loginfo("MoveRobot callback triggered: " + string.data)
+    rospy.loginfo("MoveRobot value is {}".format("True" if move_robot else "False"))
 
 def main():
     global object_list, static_order_plan, order_input, move_robot
@@ -108,7 +103,6 @@ def main():
     table_pose.pose.position.z = -0.1
     scene.add_box("table", table_pose, size=(1, 1, 0.2))
 
-
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
     pose_goal.orientation.w = 0.5
@@ -129,42 +123,31 @@ def main():
     connected_index = 0
 
     while not rospy.is_shutdown():
-
-        #
-
         # Get camera input as list of object positions
-
         # Get order input
-
         # Construct high-level path/order := L
-
         # For obj in L:
         #   Set goal as obj position
         #   Once picked up, set goal as drop-off position
-
         # Get camera input
-
         if not DEBUG_DELL:
             if not object_list:
                 rospy.loginfo("No vision data found")
-                status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
+                status_pub.publish(String("Robot connected: " + str(connected_index) + "\n"))
                 connected_index = connected_index+1
                 rospy.sleep(0.5)
                 continue
 
-        rospy.loginfo("Object list: "+str(object_list))
-        rospy.loginfo("Order list: "+str(order_input))
+        rospy.loginfo("Object list: " + str(object_list))
+        rospy.loginfo("Order list: " + str(order_input))
         # Get order input
-
         if not move_robot:
             rospy.loginfo("Waiting for robot move enable.")
             status_pub.publish(String("Waiting for robot move enable."))
             continue
 
         if not static_order_plan:
-
             # Construct high-level path/order := L
-
             static_order_plan = []
             if DEBUG_DELL:
                 static_order_plan.append(("point1",("shape type/colour", 0.44, 0.3, 0.256)))
@@ -188,34 +171,46 @@ def main():
         
         status_pub.publish(String("Order received: "+str(order_input)))
         rospy.sleep(1)
+        # clear object_list and order_input; stop repeating the last command since static order plan repeatedly populates
         object_list = []
         order_input = {}
+        # set velocity and acceleration to low scaling factor to prevent jerky movements
+        group.set_max_velocity_scaling_factor(0.1)
+        group.set_max_acceleration_scaling_factor(0.1)
         for target in static_order_plan:
             x = target[1][1]
             y = target[1][2]
-            z = target[1][3]+0.005
+            z = target[1][3]
 
             rospy.loginfo("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2))
             status_pub.publish(String("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2)))
 
+            # move end effector to just above object
             pose_goal.position.x = 0.0 + x
             pose_goal.position.y = -0.7 + y
-            pose_goal.position.z = -0.2 + z
-
-            # set pose target
+            pose_goal.position.z = -0.2 + z + 0.1
             group.set_pose_target(pose_goal)
-
             if group.go(wait=True):
                 rospy.loginfo("Path planning was a success")
             else:
                 rospy.logwarn("Path planning was a failure")
+            group.stop()
+            group.clear_pose_targets()
+
+            # move end effector to pick up object
+            pose_goal.position.z = -0.2 + z + 0.0225
+            group.set_pose_target(pose_goal)
+            if group.go(wait=True):
+                rospy.loginfo("Path planning was a success")
+            else:
+                rospy.logwarn("Path planning was a failure")
+            group.stop()
+            group.clear_pose_targets()
 
             # Naive path plan. After pick up, it moves to "central location", drop
             # it off at the drop off zone, then return back to the central location.
             if target[0] == "dropoff":
                 #rotate arm to dropoff location
-                rospy.loginfo("Dropping off")
-
                 goal = group.get_current_joint_values()
                 goal[0] = 0
                 # print(goal)
@@ -225,12 +220,14 @@ def main():
                 if group.go(goal, wait=True):
                     rospy.loginfo("At dropoff zone. Dropping item.")
                     if USE_GRIPPER:
+                        group.stop()
+                        group.clear_pose_targets()
                         toggle_gripper(False)
                 else:
                     rospy.logwarn("Failed to drop off at dropoff zone.")
                 
-                group.set_max_velocity_scaling_factor(1)
-                group.set_max_acceleration_scaling_factor(1)
+                # group.set_max_velocity_scaling_factor(0.25)
+                # group.set_max_acceleration_scaling_factor(0.25)
                 # #rotate arm back to initial position
                 # goal[0] = -pi/2
                 # if group.go(goal, wait=True):
@@ -238,27 +235,16 @@ def main():
                 # else:
                 #     rospy.logwarn("Failed to move to init location.")
             else:
-                rospy.loginfo("Toggling gripper")
-
                 if USE_GRIPPER:
                     toggle_gripper(True)
                     # gripper(scene,group)
-                group.set_max_velocity_scaling_factor(0.1)
-                group.set_max_acceleration_scaling_factor(0.1)
-                
-            # Calling `stop()` ensures that there is no residual movement
-            group.stop()
-                
-
-            # It is always good to clear your targets after planning with poses.
-            # Note: there is no equivalent function for clear_joint_value_targets()
-            group.clear_pose_targets()
-
+                # group.set_max_velocity_scaling_factor(0.1)
+                # group.set_max_acceleration_scaling_factor(0.1)
             rospy.sleep(0.1) # sleep to give other threads processing time
 
-        rospy.loginfo("Order completed!")
-        rospy.loginfo("Moving on to next order.")
-        status_pub.publish(String("Order completed. Moving on to next order."))
+        msg = "Order completed. Moving on to next order."
+        rospy.loginfo(msg)
+        status_pub.publish(String(msg))
         static_order_plan = []
 
 if __name__ == "__main__":
