@@ -67,8 +67,6 @@ find_package(Boost REQUIRED COMPONENTS system program_options)
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
-add_message_files(FILES objects_poses.msg)
-add_message_files(FILES Tracker.msg)
 
 generate_messages(DEPENDENCIES std_msgs)
 
@@ -120,13 +118,9 @@ include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_LIBRARIES})
 
 # Declare the executable, along with its source files.
 add_executable(objects_spawner src/objects_spawner.cpp)
-add_executable(objects_poses_publisher src/objects_poses_publisher.cpp)
-add_executable(objects_despawner src/objects_despawner.cpp)
 
 # Specify libraries against which to link.
 target_link_libraries(objects_spawner ${catkin_LIBRARIES} ${Boost_LIBRARIES})
-target_link_libraries(objects_poses_publisher ${catkin_LIBRARIES})
-target_link_libraries(objects_despawner ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

@@ -1,35 +1,27 @@
 <?xml version="1.0"?>
 <robot name="red_triangle">
-
-<link name="base_link">
-  <collision>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="package://ur5_sorting_system/meshes/triangle.dae"/>
-    </geometry>
-  </collision>
-
-  <visual>
-    <origin xyz="0 0 0.02" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="package://ur5_sorting_system/meshes/triangle.dae"/>
-    </geometry>
-  </visual>
-
-  <inertial>
-    <origin xyz="0 0 0.02" rpy="0 0 0" />
-    <mass value="0.05" />
-    <inertia
-      ixx="0.001" ixy="0.0"  ixz="0.0"
-      iyy="0.001" iyz="0.0"
-      izz="0.001" />
-  </inertial>
+  <link name="base_link">
+    <collision>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5_sorting_system/meshes/triangle.dae"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://ur5_sorting_system/meshes/triangle.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 0.02" rpy="0 0 0"/>
+      <mass value="0.00005"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+    </inertial>
   </link>
-
-<gazebo reference="base_link">
-  <material>Gazebo/Blue</material>
+  <gazebo reference="base_link">
+    <material>Gazebo/Blue</material>
     <mu1>5</mu1>
     <mu2>5</mu2>
-</gazebo>
-
+  </gazebo>
 </robot>

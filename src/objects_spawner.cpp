@@ -33,15 +33,13 @@
 #include <unordered_set>
 #include <vector>
 
-static std::unordered_set<std::string>
-    names;  // object names, only valid ones are kept, i.e. must be within
-            // bounds of spawn location
+static std::unordered_set<std::string> names;  // object names, only valid ones are kept, i.e. must be within
+                                               // bounds of spawn location
 
-static std::vector<std::string> get_spawn_objects_xml(
-    const std::vector<std::string> &colours,
-    const std::vector<std::string> &shapes, const ros::NodeHandle &nh);
-static void update_objects(
-    const gazebo_msgs::ModelStates &current_model_states);
+static std::vector<std::string> get_spawn_objects_xml(const std::vector<std::string> &colours,
+                                                      const std::vector<std::string> &shapes,
+                                                      const ros::NodeHandle &nh);
+static void update_objects(const gazebo_msgs::ModelStates &current_model_states);
 static int getch();
 static bool within_table_bounds(double x, double y, double z);
 
@@ -57,26 +55,21 @@ int main(int argc, char **argv) {
       "to press ENTER before object is spawned")(
       "colours,c",
       boost::program_options::value(&colours)->multitoken()->default_value(
-          std::vector<std::string>{"red", "blue", "yellow"},
-          "red, blue, yellow"),
+          std::vector<std::string>{"red", "blue", "yellow"}, "red, blue, yellow"),
       "colours to use to spawn objects. available colours: blue red yellow, if "
-      "not specified defaults to all")(
-      "number-of-picks,n",
-      boost::program_options::value(&number_of_picks)->default_value(10),
-      "number of objects to be picked up by the robot")(
+      "not specified defaults to all")("number-of-picks,n",
+                                       boost::program_options::value(&number_of_picks)->default_value(10),
+                                       "number of objects to be picked up by the robot")(
       "shapes,s",
       boost::program_options::value(&shapes)->multitoken()->default_value(
-          std::vector<std::string>{"box", "cylinder", "triangle"},
-          "box, cylinder, triangle"),
+          std::vector<std::string>{"box", "cylinder", "triangle"}, "box, cylinder, triangle"),
       "shapes to use to spawn objects. available shapes: box cylinder "
-      "triangle, if not specified, defaults to all")(
-      "random,r",
-      "object spawn is random otherwise fixed location in the "
-      "centre of the table");
+      "triangle, if not specified, defaults to all")("random,r",
+                                                     "object spawn is random otherwise fixed location in the "
+                                                     "centre of the table");
 
   boost::program_options::variables_map vm;
-  boost::program_options::store(
-      boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
 
   if (vm.count("help")) {
@@ -87,15 +80,10 @@ int main(int argc, char **argv) {
 
   ros::init(argc, argv, "objects_spawner");
   ros::NodeHandle nh;
-  ros::ServiceClient spawn_client =
-      nh.serviceClient<gazebo_msgs::SpawnModel>("/gazebo/spawn_urdf_model");
-  ros::ServiceClient delete_client =
-      nh.serviceClient<gazebo_msgs::DeleteModel>("/gazebo/delete_model");
-  ros::ServiceClient wrench_client =
-      nh.serviceClient<gazebo_msgs::ApplyBodyWrench>(
-          "/gazebo/apply_body_wrench");
-  ros::Subscriber model_states_subscriber =
-      nh.subscribe("/gazebo/model_states", 1, update_objects);
+  ros::ServiceClient spawn_client = nh.serviceClient<gazebo_msgs::SpawnModel>("/gazebo/spawn_urdf_model");
+  ros::ServiceClient delete_client = nh.serviceClient<gazebo_msgs::DeleteModel>("/gazebo/delete_model");
+  ros::ServiceClient wrench_client = nh.serviceClient<gazebo_msgs::ApplyBodyWrench>("/gazebo/apply_body_wrench");
+  ros::Subscriber model_states_subscriber = nh.subscribe("/gazebo/model_states", 1, update_objects);
   gazebo_msgs::SpawnModel::Request spawn_model_req;
   gazebo_msgs::SpawnModel::Response spawn_model_resp;
   gazebo_msgs::DeleteModel::Request delete_model_req;
@@ -142,6 +130,7 @@ int main(int argc, char **argv) {
 
   auto clear_table = [&]() -> void {
     for (auto name : names) {
+      ROS_INFO_STREAM("removing " << name << " from table.");
       apply_wrench_req.body_name = name + "::base_link";
       apply_wrench_req.start_time = ros::Time::now();
       if (!wrench_client.call(apply_wrench_req, apply_wrench_resp)) {
@@ -155,12 +144,14 @@ int main(int argc, char **argv) {
     }
     names.clear();
   };
-  boost::function<void (const std_msgs::Bool::ConstPtr&)> clear_table_callback = [&](const std_msgs::Bool::ConstPtr& msg) -> void {
+  boost::function<void(const std_msgs::Bool::ConstPtr &)> clear_table_callback =
+      [&](const std_msgs::Bool::ConstPtr &msg) -> void {
     if (msg->data) {
       clear_table();
     }
   };
-  model_states_subscriber = nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
+  ros::Subscriber clear_table_subscriber =
+      nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
 
   auto delete_objects = [&]() -> void {
     for (auto name : names) {
@@ -180,10 +171,11 @@ int main(int argc, char **argv) {
   // generate random numbers between 0 and 0.5 for spawning of blocks
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> xdis(-0.45, 0.45);
-  std::uniform_real_distribution<> ydis(0.2, 0.45);
-  const auto &spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
+  std::uniform_real_distribution<> xdis(-0.4, 0.4);
+  std::uniform_real_distribution<> ydis(0.2, 0.4);
+  auto spawn_objects = get_spawn_objects_xml(colours, shapes, nh);
   while (ros::ok()) {
+    std::shuffle(spawn_objects.begin(), spawn_objects.end(), gen);
     for (const auto &spawn_object : spawn_objects) {
       if (delay < 0) {
         ROS_INFO_STREAM(
@@ -219,9 +211,7 @@ int main(int argc, char **argv) {
       }
 
       // initialize model_name
-      spawn_model_req.model_name =
-          "object-" +
-          boost::lexical_cast<std::string>(boost::uuids::random_generator()());
+      spawn_model_req.model_name = "object-" + boost::lexical_cast<std::string>(boost::uuids::random_generator()());
       spawn_model_req.model_xml = spawn_object;
       if (random) {
         spawn_model_req.initial_pose.position.x = xdis(gen);
@@ -247,9 +237,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-static std::vector<std::string> get_spawn_objects_xml(
-    const std::vector<std::string> &colours,
-    const std::vector<std::string> &shapes, const ros::NodeHandle &nh) {
+static std::vector<std::string> get_spawn_objects_xml(const std::vector<std::string> &colours,
+                                                      const std::vector<std::string> &shapes,
+                                                      const ros::NodeHandle &nh) {
   auto read_file = [&](const std::string &path) -> std::string {
     auto stream = std::ifstream(path, std::ios::in | std::ios::ate);
     auto file_size = stream.tellg();
@@ -262,27 +252,23 @@ static std::vector<std::string> get_spawn_objects_xml(
   std::string path;
   for (const auto &colour : colours) {
     for (const auto &shape : shapes) {
-      if (!nh.getParam(
-              boost::str(boost::format("/%1%_%2%_path") % colour % shape),
-              path)) {
-        ROS_WARN_STREAM("failed to get path to urdf for " << colour << ' '
-                                                          << shape);
+      if (!nh.getParam(boost::str(boost::format("/%1%_%2%_path") % colour % shape), path)) {
+        ROS_WARN_STREAM("failed to get path to urdf for " << colour << ' ' << shape);
         continue;
       }
-      ROS_INFO_STREAM("path to urdf for " << colour << ' ' << shape
-                                          << " file found");
+      ROS_INFO_STREAM("path to urdf for " << colour << ' ' << shape << " file found");
       spawn_objects_xml.emplace_back(read_file(path));
     }
   }
   return spawn_objects_xml;
 }
 
-static void update_objects(
-    const gazebo_msgs::ModelStates &current_model_states) {
+static void update_objects(const gazebo_msgs::ModelStates &current_model_states) {
   for (std::size_t i = 0; i < current_model_states.name.size(); ++i) {
     double x = current_model_states.pose[i].position.x;
     double y = current_model_states.pose[i].position.y;
     double z = current_model_states.pose[i].position.z;
+    ROS_INFO_STREAM("On object name: " << current_model_states.name[i]);
     if (current_model_states.name[i].find("object-") == 0) {
       if (within_table_bounds(x, y, z)) {
         names.insert(current_model_states.name[i]);
@@ -300,8 +286,7 @@ static int getch() {
   static struct termios oldt, newt;
   tcgetattr(STDIN_FILENO, &oldt);  // save old settings
   newt = oldt;
-  newt.c_lflag &=
-      ~ICANON & ~ECHO;  // disable buffering and echo of character in terminal
+  newt.c_lflag &= ~ICANON & ~ECHO;          // disable buffering and echo of character in terminal
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);  // apply new settings
   int c = getchar();                        // read character (non-blocking)
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // restore old settings

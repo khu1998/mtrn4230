@@ -1,0 +1,1 @@
+replace the files in universal_robots -> ur_description -> urdf with the files located in this folder
