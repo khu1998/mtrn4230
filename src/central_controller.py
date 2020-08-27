@@ -60,12 +60,6 @@ def move_to_target(target):
         #rotate arm to dropoff location
         rospy.loginfo("Dropping off")
 
-        goal = group.get_current_joint_values()
-        goal[0] = 0
-        # print(goal)
-        # print(goal_step)
-        # for step in range(10):
-        #     goal[0] = goal[0]-goal_step 
         if group.go(goal, wait=True):
             rospy.loginfo("At dropoff zone. Dropping item.")
             if USE_GRIPPER:
@@ -75,18 +69,11 @@ def move_to_target(target):
         
         group.set_max_velocity_scaling_factor(1)
         group.set_max_acceleration_scaling_factor(1)
-        # #rotate arm back to initial position
-        # goal[0] = -pi/2
-        # if group.go(goal, wait=True):
-        #     rospy.loginfo("Back to init location.")
-        # else:
-        #     rospy.logwarn("Failed to move to init location.")
     else:
         rospy.loginfo("Toggling gripper")
 
         if USE_GRIPPER:
             toggle_gripper(True)
-            # gripper(scene,group)
         group.set_max_velocity_scaling_factor(0.1)
         group.set_max_acceleration_scaling_factor(0.1)
         
@@ -201,7 +188,9 @@ def main():
 
     status_pub.publish(String("Robot connected."))
 
-    drop_point = ("drop_pt", 0.0, 0.2, 0.45)
+    cam_point = ("cam_pt", 0.4, 0.5, 0.45)
+    center_point = ("center_pt", 0.0, 0.0, 0.45)
+    drop_point = ("drop_pt", 0.4, 0.7,0.45)
 
     connected_index = 0
 
@@ -258,8 +247,14 @@ def main():
                         if num_required == 0:
                             break
                         if elm[0] == key:
+                            pose = elm
+                            pose[3] = 0.45
+                            static_order_plan.append(("center",center_point))
+                            static_order_plan.append(("above_target",pose))
                             static_order_plan.append((key,elm))
+                            static_order_plan.append(("above_target",pose))
                             static_order_plan.append(("dropoff",drop_point))
+                            static_order_plan.append(("cam_pos",cam_point))
                             num_required -= 1
                 # End TODO
         
