@@ -144,8 +144,10 @@ int main(int argc, char **argv) {
     }
     names.clear();
   };
+
   boost::function<void(const std_msgs::Bool::ConstPtr &)> clear_table_callback =
       [&](const std_msgs::Bool::ConstPtr &msg) -> void {
+    ROS_INFO_STREAM("Clear table triggered via GUI");
     if (msg->data) {
       clear_table();
     }
