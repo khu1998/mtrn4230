@@ -24,7 +24,7 @@ from gripper import toggle_gripper
 #   export ROS_MASTER_URI=http://"$ROS_IP":11311/
 #   python ./simulation_ws/src/mtrn4230/src/central_controller.py
 
-USE_GRIPPER = False
+USE_GRIPPER = True
 DEBUG_DELL = False
 
 object_list = []
@@ -37,7 +37,9 @@ def move_to_target(target):
 
     x = target[1][1]
     y = target[1][2]
-    z = target[1][3]+0.005
+    z = target[1][3]
+    if target[0] == "above_target":
+        z=z+0.2
 
     rospy.loginfo("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2))
     status_pub.publish(String("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2)))
@@ -59,18 +61,15 @@ def move_to_target(target):
     if target[0] == "dropoff":
         #rotate arm to dropoff location
         rospy.loginfo("Dropping off")
-
-        if group.go(goal, wait=True):
-            rospy.loginfo("At dropoff zone. Dropping item.")
-            if USE_GRIPPER:
-                toggle_gripper(False)
+        if USE_GRIPPER:
+            toggle_gripper(False)
         else:
-            rospy.logwarn("Failed to drop off at dropoff zone.")
+            rospy.logwarn("Gripper is not activated")
         
         group.set_max_velocity_scaling_factor(1)
         group.set_max_acceleration_scaling_factor(1)
     else:
-        rospy.loginfo("Toggling gripper")
+        rospy.loginfo("Gripper activated")
 
         if USE_GRIPPER:
             toggle_gripper(True)
@@ -247,12 +246,12 @@ def main():
                         if num_required == 0:
                             break
                         if elm[0] == key:
-                            pose = elm
-                            pose[3] = 0.45
                             static_order_plan.append(("center",center_point))
-                            static_order_plan.append(("above_target",pose))
+                            static_order_plan.append(("above_target",elm))
                             static_order_plan.append((key,elm))
-                            static_order_plan.append(("above_target",pose))
+                            static_order_plan.append(("above_target",elm))
+                            if elm[1]<0:
+                                static_order_plan.append(("center",center_point))
                             static_order_plan.append(("dropoff",drop_point))
                             static_order_plan.append(("cam_pos",cam_point))
                             num_required -= 1

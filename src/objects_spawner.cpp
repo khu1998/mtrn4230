@@ -40,6 +40,7 @@ static std::vector<std::string> get_spawn_objects_xml(const std::vector<std::str
                                                       const std::vector<std::string> &shapes,
                                                       const ros::NodeHandle &nh);
 static void update_objects(const gazebo_msgs::ModelStates &current_model_states);
+static void clear_table_callback(const std_msgs::Bool::ConstPtr &msg);
 static int getch();
 static bool within_table_bounds(double x, double y, double z);
 
@@ -145,15 +146,14 @@ int main(int argc, char **argv) {
     names.clear();
   };
 
-  boost::function<void(const std_msgs::Bool::ConstPtr &)> clear_table_callback =
-      [&](const std_msgs::Bool::ConstPtr &msg) -> void {
-    ROS_INFO_STREAM("Clear table triggered via GUI");
-    if (msg->data) {
-      clear_table();
-    }
-  };
-  ros::Subscriber clear_table_subscriber =
-      nh.subscribe<std_msgs::Bool::ConstPtr>("/clear_table", 1, clear_table_callback);
+  // boost::function<void(const std_msgs::Bool::ConstPtr &)> clear_table_callback_ =
+  //     [&](const std_msgs::Bool::ConstPtr &msg) -> void {
+  //   ROS_INFO_STREAM("Clear table triggered via GUI");
+  //   if (msg->data) {
+  //     clear_table();
+  //   }
+  // };
+  ros::Subscriber clear_table_subscriber = nh.subscribe("/clear_table", 1, clear_table_callback);
 
   auto delete_objects = [&]() -> void {
     for (auto name : names) {
@@ -281,6 +281,10 @@ static void update_objects(const gazebo_msgs::ModelStates &current_model_states)
       }
     }
   }
+}
+
+static void clear_table_callback(const std_msgs::Bool::ConstPtr &msg) {
+  ROS_INFO_STREAM("Clear table callback triggered via MATLAB GUI: data -> " << msg->data);
 }
 
 static int getch() {
