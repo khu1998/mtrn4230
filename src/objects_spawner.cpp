@@ -229,12 +229,11 @@ int main(int argc, char **argv) {
         return 1;
       }
 
-      ros::spinOnce();
-
       if (delay >= 0) {
         ros::Duration(delay).sleep();
       }
     }
+    ros::spinOnce();
   }
   return 0;
 }
