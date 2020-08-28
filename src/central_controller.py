@@ -55,7 +55,9 @@ def move_to_target(target):
         rospy.loginfo("Path planning was a success")
     else:
         rospy.logwarn("Path planning was a failure")
-
+        
+    group.set_max_velocity_scaling_factor(0.1 if target[2] else 1)
+    group.set_max_acceleration_scaling_factor(0.1 if target[2] else 1)
     # Naive path plan. After pick up, it moves to "central location", drop
     # it off at the drop off zone, then return back to the central location.
     if target[0] == "dropoff":
@@ -65,16 +67,14 @@ def move_to_target(target):
             toggle_gripper(target[2])
         else:
             rospy.logwarn("Gripper is not activated")
-        
-        group.set_max_velocity_scaling_factor(1)
-        group.set_max_acceleration_scaling_factor(1)
+
     else:
         rospy.loginfo("Gripper activated")
 
         if USE_GRIPPER:
             toggle_gripper(target[2])
-        group.set_max_velocity_scaling_factor(0.1)
-        group.set_max_acceleration_scaling_factor(0.1)
+        # group.set_max_velocity_scaling_factor(0.1)
+        # group.set_max_acceleration_scaling_factor(0.1)
         
     # Calling `stop()` ensures that there is no residual movement
     group.stop()
@@ -107,7 +107,7 @@ def vision_callback(string):
         if e[1] == "NA":
             object_list = []
             return
-        tup = (e[1], float(e[2]), float(e[3]), float(e[4]) + 0.015)
+        tup = (e[1], float(e[2]), float(e[3]), float(e[4]) + 0.025)
         object_list[i] = tup
 
 def order_callback(string):
@@ -191,12 +191,12 @@ def main():
     scene.add_box("crate", crate, size=(0.45, 0.45, 0.2))
 
     # visualize in Rviz, add the PlanningScene
-    top_wall = geometry_msgs.msg.PoseStamped()
-    top_wall.header.frame_id = robot.get_planning_frame()
-    top_wall.pose.position.x = 0.0
-    top_wall.pose.position.y = 0.0
-    top_wall.pose.position.z = 0.8
-    scene.add_box("top_wall", top_wall, size=(1, 1, 0.05))
+    # top_wall = geometry_msgs.msg.PoseStamped()
+    # top_wall.header.frame_id = robot.get_planning_frame()
+    # top_wall.pose.position.x = 0.0
+    # top_wall.pose.position.y = 0.0
+    # top_wall.pose.position.z = 0.8
+    # scene.add_box("top_wall", top_wall, size=(1, 1, 0.05))
 
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
@@ -221,7 +221,9 @@ def main():
     drop_point = ("drop_pt", 0.4, 0.7, 0.45)
 
     connected_index = 0
-
+    if not rospy.is_shutdown():
+        rospy.loginfo("Moving arm to starting position")
+        move_to_target(("cam_pos",cam_point, False))
     while not rospy.is_shutdown():
 
         #
