@@ -55,9 +55,15 @@ python src/central_controller.py
 
 ## Folder structure
 /config -> store config and yaml files
+
 /launch -> store launch files
+
 /matlab -> store matlab files
+
 /meshes -> store mesh files to define custom models in ROS Gazebo
+
 /src -> store C++ and Python files
+
 /urdf -> store urdf files
+
 /world -> store world files
