@@ -64,7 +64,7 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
     
     stats = regionprops(BW, 'BoundingBox','Centroid','area');
     blockstats = regionprops('table', BW, 'all');
-    p = blockstats.Perimeter
+    %p = blockstats.Perimeter
     accepted = blockstats.Area >= area_min & blockstats.Area <= area_max & blockstats.Perimeter >= perimeter_min & blockstats.Perimeter <= perimeter_max;
     centroids = cat(1, blockstats.Centroid);
     
