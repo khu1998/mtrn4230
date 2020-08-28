@@ -43,7 +43,7 @@ def move_to_target(target):
 
     rospy.loginfo("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2))
     status_pub.publish(String("Moving end effector to {}: x -> {}, y -> {}, z -> {}+0.2".format(target[0], x, y, z-0.2)))
-
+    rospy.sleep(0.1)
     pose_goal.position.x = 0.0 + x
     pose_goal.position.y = -0.7 + y
     pose_goal.position.z = -0.2 + z
@@ -86,6 +86,11 @@ def move_to_target(target):
 
     rospy.sleep(0.1) # sleep to give other threads processing time
 
+def reset_num_completed():
+    global num_completed_pub, num_completed
+    num_completed=0
+    num_completed_pub.publish(String(str(num_completed)))
+
 def vision_callback(string):
     global object_list
     #rospy.loginfo("Vision callback triggered")
@@ -99,25 +104,33 @@ def vision_callback(string):
         if not elm:
             break
         e = elm.split(',')
+        if e[1] == "NA":
+            object_list = []
+            return
         tup = (e[1], float(e[2]), float(e[3]), float(e[4]))
         object_list[i] = tup
 
 def order_callback(string):
-    global order_input
+    global order_input, static_order_plan
 
     rospy.loginfo("Order callback triggered: "+string.data)
     lines = string.data.split('|')
     msg_id = lines[0]
-    elms = lines[1:]
+    elms = lines[1].split(',')
 
     order_input = {}
+    static_order_plan = []
 
-    for i, elm in enumerate(elms):
-        if not elm:
-            break
-        e = elm.split(',')
-        order_input[e[0]] = int(e[1])
-    #rospy.loginfo(" order callback: " +str(order_input))
+    order_input['number']= int(elms[0])
+
+    # if elms[1] == "any":
+    #     order_input["shapes"]=["rectangle","triangle","cylinder"]
+    # else:
+    order_input["shape"]=elms[1]
+
+
+    order_input["colours"]=[e for e in elms[2]]
+    reset_num_completed()
 
 def status_callback(string):
     ""#""ospy.loginfo("Status callback triggered: "+string.data)
@@ -125,7 +138,7 @@ def status_callback(string):
 def reset_callback(msg):
     global static_order_plan, drop_point
     rospy.loginfo("Reset callback triggered.")
-
+    reset_num_completed()
     static_order_plan =[("dropoff",drop_point)]
     move_to_target(static_order_plan[0])
 
@@ -150,7 +163,7 @@ def move_robot_callback(string):
 def main():
     global object_list, static_order_plan, order_input, move_robot
     global pose_goal, scene, robot, group, status_pub, USE_GRIPPER, drop_point
-
+    global num_completed, num_completed_pub
     moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node('motion_planner', anonymous=True)
                     
@@ -180,7 +193,9 @@ def main():
 
     rospy.Subscriber("cv_pos", String, vision_callback)
     rospy.Subscriber("cv_order", String, order_callback)
-    status_pub = rospy.Publisher("cv_status", String, queue_size=3)
+    status_pub = rospy.Publisher("cv_status", String)
+    num_completed_pub = rospy.Publisher("cv_completed", String)
+
     rospy.Subscriber("cv_status", String, status_callback)
     rospy.Subscriber("cv_move_robot", String, move_robot_callback)
     rospy.Subscriber("cv_reset", Bool, reset_callback)
@@ -211,20 +226,28 @@ def main():
 
         if not DEBUG_DELL:
             if not object_list:
-                rospy.loginfo("No vision data found")
-                status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
-                connected_index = connected_index+1
-                rospy.sleep(0.5)
-                continue
+                if not order_input:
+                    rospy.loginfo("No vision data found")
+                    status_pub.publish(String("Robot connected: "+str(connected_index)+"\n"))
+                    connected_index = connected_index+1
+                    rospy.sleep(0.5)
+                    continue
+                else:
+                    rospy.loginfo("No suitable matches found.")
+                    status_pub.publish(String("No suitable matches found."))
+                    rospy.sleep(0.5)
+                    continue
 
-        rospy.loginfo("Object list: "+str(object_list))
+        #rospy.loginfo("Object list: "+str(object_list))
         #rospy.loginfo("Order list: "+str(order_input))
         # Get order input
 
         if not order_input:
             rospy.loginfo("Waiting for order.")
             status_pub.publish(String("Waiting for order."))
+            rospy.sleep(0.5)
             continue
+
 
         if not static_order_plan:
 
@@ -240,34 +263,43 @@ def main():
                 static_order_plan.append(("dropoff", (drop_point)))
             else:
                 # TODO: replace with actual optimized plan
-                for key, val in order_input.items():
-                    num_required = val
-                    for elm in object_list:
-                        if num_required == 0:
-                            break
-                        if elm[0] == key:
+                b_found_match=False
+                for elm in object_list:
+                    col,shape = elm[0].split('_')
+                    print(col, shape, order_input["colours"], order_input["shape"])
+                    if col in order_input["colours"] and shape == order_input["shape"]:
+                        if elm[1]<0:
                             static_order_plan.append(("center",center_point))
-                            static_order_plan.append(("above_target",elm))
-                            static_order_plan.append((key,elm))
-                            static_order_plan.append(("above_target",elm))
-                            if elm[1]<0:
-                                static_order_plan.append(("center",center_point))
-                            static_order_plan.append(("dropoff",drop_point))
-                            static_order_plan.append(("cam_pos",cam_point))
-                            num_required -= 1
-                # End TODO
+                        static_order_plan.append(("above_target",elm))
+                        static_order_plan.append((elm[0],elm))
+                        static_order_plan.append(("above_target",elm))
+                        if elm[1]<0:
+                            static_order_plan.append(("center",center_point))
+                        static_order_plan.append(("dropoff",drop_point))
+                        static_order_plan.append(("cam_pos",cam_point))
+                        b_found_match = True
+                        break
+                if not b_found_match:
+                    rospy.loginfo("No suitable matches found.")
+                    status_pub.publish(String("No suitable matches found."))
         
-        status_pub.publish(String("Order received: "+str(order_input)))
-        rospy.sleep(1)
+        rospy.sleep(0.1)
         object_list = []
-        order_input = {}
         for target in static_order_plan:
             move_to_target(target)
 
-        rospy.loginfo("Order completed!")
-        rospy.loginfo("Moving on to next order.")
-        status_pub.publish(String("Order completed. Moving on to next order."))
+        rospy.loginfo("Object completed! Moving on to next object.")
+        status_pub.publish(String("Object completed. Moving on to next object."))
+        rospy.sleep(0.1)
+        num_completed += 1
+        num_completed_pub.publish(String(str(num_completed)))
         static_order_plan = []
+
+        if num_completed == order_input['number']:
+            rospy.loginfo("Order completed.")
+            status_pub.publish(String("Order completed."))
+            rospy.sleep(0.1)
+            order_input = {}
 
 if __name__ == "__main__":
     main()
