@@ -204,7 +204,7 @@ def main():
 
     cam_point = ("cam_pt", 0.4, 0.5, 0.45)
     center_point = ("center_pt", 0.0, 0.2, 0.45)
-    drop_point = ("drop_pt", 0.4, 0.7,0.45)
+    drop_point = ("drop_pt", 0.4, 0.75, 0.45)
 
     connected_index = 0
 
