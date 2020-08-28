@@ -26,10 +26,10 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
     end
     
     if shape == 1
-        area_min = 500;
-        area_max = 600;
-        perimeter_min = 84;
-        perimeter_max = 95;
+        area_min = 1400;
+        area_max = 1600;
+        perimeter_min = 140;
+        perimeter_max = 155;
     end
     if shape == 2
         area_min = 1100;
@@ -38,10 +38,10 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
         perimeter_max = 130;
     end
     if shape == 3
-        area_min = 500;
-        area_max = 600;
-        perimeter_min = 95;
-        perimeter_max = 105;
+        area_min = 1800;
+        area_max = 2100;
+        perimeter_min = 190;
+        perimeter_max = 205;
     end
     if shape == 4
         area_min = 0;
@@ -64,6 +64,7 @@ function [xPos,yPos] = getPosColandShape(image, colour, shape)
     
     stats = regionprops(BW, 'BoundingBox','Centroid','area');
     blockstats = regionprops('table', BW, 'all');
+    p = blockstats.Perimeter
     accepted = blockstats.Area >= area_min & blockstats.Area <= area_max & blockstats.Perimeter >= perimeter_min & blockstats.Perimeter <= perimeter_max;
     centroids = cat(1, blockstats.Centroid);
     
