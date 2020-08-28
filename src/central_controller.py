@@ -62,7 +62,7 @@ def move_to_target(target):
         #rotate arm to dropoff location
         rospy.loginfo("Dropping off")
         if USE_GRIPPER:
-            toggle_gripper(False)
+            toggle_gripper(target[2])
         else:
             rospy.logwarn("Gripper is not activated")
         
@@ -72,7 +72,7 @@ def move_to_target(target):
         rospy.loginfo("Gripper activated")
 
         if USE_GRIPPER:
-            toggle_gripper(True)
+            toggle_gripper(target[2])
         group.set_max_velocity_scaling_factor(0.1)
         group.set_max_acceleration_scaling_factor(0.1)
         
@@ -107,7 +107,7 @@ def vision_callback(string):
         if e[1] == "NA":
             object_list = []
             return
-        tup = (e[1], float(e[2]), float(e[3]), float(e[4]))
+        tup = (e[1], float(e[2]), float(e[3]), float(e[4]) + 0.015)
         object_list[i] = tup
 
 def order_callback(string):
@@ -176,13 +176,27 @@ def main():
 
     # add table as collision object
     # table pose frame is same as robot frame
-    table_pose = geometry_msgs.msg.PoseStamped()
-    table_pose.header.frame_id = robot.get_planning_frame()
-    table_pose.pose.position.x = 0.0
-    table_pose.pose.position.y = -0.7
-    table_pose.pose.position.z = -0.1
-    scene.add_box("table", table_pose, size=(1, 1, 0.2))
+    table = geometry_msgs.msg.PoseStamped()
+    table.header.frame_id = robot.get_planning_frame()
+    table.pose.position.x = 0.0
+    table.pose.position.y = -0.7
+    table.pose.position.z = -0.1
+    scene.add_box("table", table, size=(1, 1, 0.2))
 
+    crate = geometry_msgs.msg.PoseStamped()
+    crate.header.frame_id = robot.get_planning_frame()
+    crate.pose.position.x = 0.0 + 0.4
+    crate.pose.position.y = -0.7 + 0.75
+    crate.pose.position.z = -0.2 + 0.1
+    scene.add_box("crate", crate, size=(0.45, 0.45, 0.2))
+
+    # visualize in Rviz, add the PlanningScene
+    top_wall = geometry_msgs.msg.PoseStamped()
+    top_wall.header.frame_id = robot.get_planning_frame()
+    top_wall.pose.position.x = 0.0
+    top_wall.pose.position.y = 0.0
+    top_wall.pose.position.z = 0.8
+    scene.add_box("top_wall", top_wall, size=(1, 1, 0.05))
 
     # pose goal is relative to frame of robot
     pose_goal = geometry_msgs.msg.Pose()
@@ -269,14 +283,14 @@ def main():
                     print(col, shape, order_input["colours"], order_input["shape"])
                     if col in order_input["colours"] and shape == order_input["shape"]:
                         if elm[1]<0:
-                            static_order_plan.append(("center",center_point))
-                        static_order_plan.append(("above_target",elm))
-                        static_order_plan.append((elm[0],elm))
-                        static_order_plan.append(("above_target",elm))
+                            static_order_plan.append(("center",center_point, False))
+                        static_order_plan.append(("above_target",elm, False))
+                        static_order_plan.append((elm[0],elm, True))
+                        static_order_plan.append(("above_target",elm, True))
                         if elm[1]<0:
-                            static_order_plan.append(("center",center_point))
-                        static_order_plan.append(("dropoff",drop_point))
-                        static_order_plan.append(("cam_pos",cam_point))
+                            static_order_plan.append(("center",center_point, True))
+                        static_order_plan.append(("dropoff",drop_point, False))
+                        static_order_plan.append(("cam_pos",cam_point, False))
                         b_found_match = True
                         break
                 if not b_found_match:
